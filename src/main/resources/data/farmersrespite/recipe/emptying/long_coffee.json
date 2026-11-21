@@ -1,4 +1,10 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
   "type": "create:emptying",
   "ingredients": [
     {
@@ -7,11 +13,11 @@
   ],
   "results": [
     {
-      "item": "minecraft:glass_bottle"
+      "id": "minecraft:glass_bottle"
     },
     {
       "amount": 250,
-      "fluid": "farmersrespite:long_coffee"
+      "id": "farmersrespite:long_coffee"
     }
   ]
 }

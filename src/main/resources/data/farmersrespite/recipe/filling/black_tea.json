@@ -1,18 +1,24 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
   "type": "create:filling",
   "ingredients": [
     {
       "item": "minecraft:glass_bottle"
     },
     {
+      "type": "neoforge:single",
       "amount": 250,
-      "fluid": "farmersrespite:black_tea",
-      "nbt": {}
+      "fluid": "farmersrespite:black_tea"
     }
   ],
   "results": [
     {
-      "item": "farmersrespite:black_tea"
+      "id": "farmersrespite:black_tea"
     }
   ]
 }

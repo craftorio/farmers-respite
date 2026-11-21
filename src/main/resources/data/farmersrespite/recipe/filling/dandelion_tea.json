@@ -1,18 +1,24 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "create"
+    }
+  ],
   "type": "create:filling",
   "ingredients": [
     {
       "item": "minecraft:glass_bottle"
     },
     {
+      "type": "neoforge:single",
       "amount": 250,
-      "fluid": "farmersrespite:dandelion_tea",
-      "nbt": {}
+      "fluid": "farmersrespite:dandelion_tea"
     }
   ],
   "results": [
     {
-      "item": "farmersrespite:dandelion_tea"
+      "id": "farmersrespite:dandelion_tea"
     }
   ]
 }
