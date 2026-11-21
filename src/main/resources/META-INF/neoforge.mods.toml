@@ -13,6 +13,8 @@ authors="${mod_authors}"
 description='''${mod_description}'''
 itemIcon="farmersrespite:kettle"
 configBackground="minecraft:textures/block/bricks.png"
+# adds RecipeBookType.FARMERSRESPITE_BREWING; without it the mod fails to load
+enumExtensions="META-INF/enumextensions.json"
 
 [[mixins]]
 config="farmersrespite.mixins.json"
