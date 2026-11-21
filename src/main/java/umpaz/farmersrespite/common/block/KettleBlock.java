@@ -1,8 +1,13 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,6 +18,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -48,9 +54,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import umpaz.farmersrespite.common.block.entity.KettleBlockEntity;
 import umpaz.farmersrespite.common.registry.FRBlockEntityTypes;
 import vectorwing.farmersdelight.common.block.state.CookingPotSupport;
@@ -58,6 +63,13 @@ import vectorwing.farmersdelight.common.tag.ModTags;
 import vectorwing.farmersdelight.common.utility.MathUtils;
 
 public class KettleBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
+   public static final MapCodec<KettleBlock> CODEC = simpleCodec(props -> new KettleBlock());
+
+   @Override
+   public MapCodec<KettleBlock> codec() {
+      return CODEC;
+   }
+
    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
    public static final EnumProperty<CookingPotSupport> SUPPORT = EnumProperty.create("support", CookingPotSupport.class);
    public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
@@ -75,7 +87,7 @@ public class KettleBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
       );
    }
 
-   public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
+   public ItemInteractionResult useItemOn(ItemStack pUsedStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
       ItemStack heldStack = player.getItemInHand(hand);
       if (!level.isClientSide && heldStack.isEmpty() && player.isShiftKeyDown()) {
          if ((Boolean)state.getValue(LID)) {
@@ -85,7 +97,7 @@ public class KettleBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
          }
 
          level.playSound(null, pos, SoundEvents.LANTERN_PLACE, SoundSource.BLOCKS, 0.7F, 1.0F);
-         return InteractionResult.SUCCESS;
+         return ItemInteractionResult.SUCCESS;
       } else {
          if (level.getBlockEntity(pos) instanceof KettleBlockEntity kettleBE) {
             FluidTank kettleTank = kettleBE.getFluidTank();
@@ -97,19 +109,19 @@ public class KettleBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
                   player.drop(itm, false);
                }
 
-               return InteractionResult.SUCCESS;
+               return ItemInteractionResult.SUCCESS;
             }
 
             if (!level.isClientSide()) {
-               NetworkHooks.openScreen((ServerPlayer)player, kettleBE, pos);
+               ((ServerPlayer)player).openMenu(kettleBE, buf -> buf.writeBlockPos(pos));
             }
          }
 
-         return InteractionResult.SUCCESS;
+         return ItemInteractionResult.SUCCESS;
       }
    }
 
-   static InteractionResult emptyContainer(
+   static ItemInteractionResult emptyContainer(
       Level level, BlockPos pos, Player player, InteractionHand hand, ItemStack stack, BlockState state, SoundEvent sound, Item container
    ) {
       if (!level.isClientSide) {
@@ -123,7 +135,7 @@ public class KettleBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
          level.gameEvent((Entity)null, GameEvent.FLUID_PLACE, pos);
       }
 
-      return InteractionResult.sidedSuccess(level.isClientSide);
+      return ItemInteractionResult.sidedSuccess(level.isClientSide);
    }
 
    public RenderShape getRenderShape(BlockState pState) {
@@ -163,17 +175,16 @@ public class KettleBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
       return level.getBlockState(pos.below()).is(ModTags.TRAY_HEAT_SOURCES) ? CookingPotSupport.TRAY : CookingPotSupport.NONE;
    }
 
-   public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+   public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
       ItemStack stack = super.getCloneItemStack(level, pos, state);
-      KettleBlockEntity kettleEntity = (KettleBlockEntity)level.getBlockEntity(pos);
-      if (kettleEntity != null) {
-         CompoundTag nbt = kettleEntity.writeMeal(new CompoundTag());
+      if (level.getBlockEntity(pos) instanceof KettleBlockEntity kettleEntity && level instanceof Level world) {
+         CompoundTag nbt = kettleEntity.writeMeal(new CompoundTag(), world.registryAccess());
          if (!nbt.isEmpty()) {
-            stack.addTagElement("BlockEntityTag", nbt);
+            stack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(nbt));
          }
 
          if (kettleEntity.hasCustomName()) {
-            stack.setHoverName(kettleEntity.getCustomName());
+            stack.set(DataComponents.CUSTOM_NAME, kettleEntity.getCustomName());
          }
       }
 
@@ -198,7 +209,7 @@ public class KettleBlock extends BaseEntityBlock implements SimpleWaterloggedBlo
    }
 
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-      if (stack.hasCustomHoverName()) {
+      if (stack.has(DataComponents.CUSTOM_NAME)) {
          BlockEntity tileEntity = level.getBlockEntity(pos);
          if (tileEntity instanceof KettleBlockEntity) {
             ((KettleBlockEntity)tileEntity).setCustomName(stack.getHoverName());

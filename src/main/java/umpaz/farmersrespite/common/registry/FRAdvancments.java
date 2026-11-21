@@ -7,6 +7,6 @@ public class FRAdvancments {
    public static StuntTeaTrigger STUNT_TEA_BUSH = new StuntTeaTrigger();
 
    public static void register() {
-      CriteriaTriggers.register(STUNT_TEA_BUSH);
+      CriteriaTriggers.register("farmersrespite:stunt_tea_bush", STUNT_TEA_BUSH);
    }
 }

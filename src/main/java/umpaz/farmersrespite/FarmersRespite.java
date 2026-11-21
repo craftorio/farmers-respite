@@ -1,12 +1,11 @@
 package umpaz.farmersrespite;
 
 import net.minecraft.world.inventory.RecipeBookType;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig.Type;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import umpaz.farmersrespite.common.FRConfiguration;
@@ -27,11 +26,10 @@ import umpaz.farmersrespite.common.registry.FRWorldgenFeatures;
 public class FarmersRespite {
    public static final String MODID = "farmersrespite";
    public static final Logger LOGGER = LogManager.getLogger();
-   public static final RecipeBookType RECIPE_TYPE_BREWING = RecipeBookType.create("BREWING");
+   public static final RecipeBookType RECIPE_TYPE_BREWING = RecipeBookType.valueOf("FARMERSRESPITE_BREWING");
 
-   public FarmersRespite() {
-      IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-      ModLoadingContext.get().registerConfig(Type.COMMON, FRConfiguration.COMMON_CONFIG);
+   public FarmersRespite(IEventBus modEventBus, ModContainer container) {
+      container.registerConfig(ModConfig.Type.COMMON, FRConfiguration.COMMON_CONFIG);
       FREffects.EFFECTS.register(modEventBus);
       FRItems.ITEMS.register(modEventBus);
       FRBlocks.BLOCKS.register(modEventBus);
@@ -45,6 +43,6 @@ public class FarmersRespite {
       FRLootFunctions.LOOT_FUNCTIONS.register(modEventBus);
       FRSounds.SOUNDS.register(modEventBus);
       FRCreativeTab.TABS.register(modEventBus);
-      MinecraftForge.EVENT_BUS.register(this);
+      NeoForge.EVENT_BUS.register(this);
    }
 }

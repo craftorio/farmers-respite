@@ -1,18 +1,20 @@
 package umpaz.farmersrespite.data.recipe;
 
+import net.neoforged.neoforge.common.Tags;
+
 import java.util.function.Consumer;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.fluids.FluidStack;
 import umpaz.farmersrespite.common.registry.FRFluids;
 import umpaz.farmersrespite.common.registry.FRItems;
 import umpaz.farmersrespite.common.tag.FRTags;
 import umpaz.farmersrespite.data.builder.KettleRecipeBuilder;
-import vectorwing.farmersdelight.common.tag.ForgeTags;
+import vectorwing.farmersdelight.common.tag.CommonTags;
 
 public class FRBrewingRecipes {
    public static void register(Consumer<FinishedRecipe> consumer) {
@@ -60,52 +62,52 @@ public class FRBrewingRecipes {
          .addIngredient(Items.MELON_SLICE)
          .addIngredient(Items.SUGAR)
          .build(consumer);
-      KettleRecipeBuilder.kettleRecipe(new FluidStack((Fluid)ForgeMod.MILK.get(), 1000), new FluidStack((Fluid)FRFluids.HOT_COCOA.get(), 1000), 2400, 0.35F)
+      KettleRecipeBuilder.kettleRecipe(new FluidStack((Fluid)NeoForgeMod.MILK.get(), 1000), new FluidStack((Fluid)FRFluids.HOT_COCOA.get(), 1000), 2400, 0.35F)
          .addIngredient(Items.COCOA_BEANS)
          .addIngredient(Items.SUGAR)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.GREEN_TEA.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_GREEN_TEA.get(), 1000), 2400, 0.35F
          )
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.YELLOW_TEA.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_YELLOW_TEA.get(), 1000), 2400, 0.35F
          )
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.BLACK_TEA.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_BLACK_TEA.get(), 1000), 2400, 0.35F
          )
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.ROSE_HIP_TEA.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_ROSE_HIP_TEA.get(), 1000), 2400, 0.35F
          )
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.DANDELION_TEA.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_DANDELION_TEA.get(), 1000), 2400, 0.35F
          )
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.PURULENT_TEA.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_PURULENT_TEA.get(), 1000), 2400, 0.35F
          )
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.GAMBLERS_TEA.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_GAMBLERS_TEA.get(), 1000), 2400, 0.35F
          )
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(new FluidStack((Fluid)FRFluids.COFFEE.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_COFFEE.get(), 1000), 2400, 0.35F)
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.APPLE_CIDER.get(), 1000), new FluidStack((Fluid)FRFluids.LONG_APPLE_CIDER.get(), 1000), 2400, 0.35F
          )
-         .addIngredient(ForgeTags.MILK)
+         .addIngredient(Tags.Items.DRINKS_MILK)
          .build(consumer);
       KettleRecipeBuilder.kettleRecipe(
             new FluidStack((Fluid)FRFluids.GREEN_TEA.get(), 1000), new FluidStack((Fluid)FRFluids.STRONG_GREEN_TEA.get(), 1000), 2400, 0.35F

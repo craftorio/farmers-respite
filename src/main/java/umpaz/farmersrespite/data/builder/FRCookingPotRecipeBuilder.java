@@ -21,7 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import vectorwing.farmersdelight.client.recipebook.CookingPotRecipeBookTab;
 import vectorwing.farmersdelight.common.registry.ModRecipeSerializers;
 
@@ -106,27 +106,27 @@ public class FRCookingPotRecipeBuilder {
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn) {
-      ResourceLocation location = ForgeRegistries.ITEMS.getKey(this.result);
+      ResourceLocation location = BuiltInRegistries.ITEM.getKey(this.result);
       this.build(consumerIn, "farmersrespite:cooking/" + location.getPath());
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn, String save) {
-      ResourceLocation resourcelocation = ForgeRegistries.ITEMS.getKey(this.result);
-      if (new ResourceLocation(save).equals(resourcelocation)) {
+      ResourceLocation resourcelocation = BuiltInRegistries.ITEM.getKey(this.result);
+      if (ResourceLocation.parse(save).equals(resourcelocation)) {
          throw new IllegalStateException("Cooking Recipe " + save + " should remove its 'save' argument");
       }
 
-      this.build(consumerIn, new ResourceLocation(save));
+      this.build(consumerIn, ResourceLocation.parse(save));
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn, ResourceLocation id) {
       if (!this.advancement.getCriteria().isEmpty()) {
          this.advancement
-            .parent(new ResourceLocation("recipes/root"))
+            .parent(ResourceLocation.withDefaultNamespace("recipes/root"))
             .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
             .rewards(net.minecraft.advancements.AdvancementRewards.Builder.recipe(id))
             .requirements(RequirementsStrategy.OR);
-         ResourceLocation advancementId = new ResourceLocation(id.getNamespace(), "recipes/" + id.getPath());
+         ResourceLocation advancementId = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "recipes/" + id.getPath());
          consumerIn.accept(
             new FRCookingPotRecipeBuilder.Result(
                id, this.result, this.count, this.ingredients, this.cookingTime, this.experience, this.container, this.tab, this.advancement, advancementId
@@ -201,7 +201,7 @@ public class FRCookingPotRecipeBuilder {
 
          json.add("ingredients", arrayIngredients);
          JsonObject objectResult = new JsonObject();
-         objectResult.addProperty("item", ForgeRegistries.ITEMS.getKey(this.result).toString());
+         objectResult.addProperty("item", BuiltInRegistries.ITEM.getKey(this.result).toString());
          if (this.count > 1) {
             objectResult.addProperty("count", this.count);
          }
@@ -209,7 +209,7 @@ public class FRCookingPotRecipeBuilder {
          json.add("result", objectResult);
          if (this.container != null) {
             JsonObject objectContainer = new JsonObject();
-            objectContainer.addProperty("item", ForgeRegistries.ITEMS.getKey(this.container).toString());
+            objectContainer.addProperty("item", BuiltInRegistries.ITEM.getKey(this.container).toString());
             json.add("container", objectContainer);
          }
 

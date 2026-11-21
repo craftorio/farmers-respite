@@ -8,7 +8,7 @@ import umpaz.farmersrespite.common.registry.FRItems;
 import umpaz.farmersrespite.data.builder.FRCookingPotRecipeBuilder;
 import vectorwing.farmersdelight.client.recipebook.CookingPotRecipeBookTab;
 import vectorwing.farmersdelight.common.registry.ModItems;
-import vectorwing.farmersdelight.common.tag.ForgeTags;
+import vectorwing.farmersdelight.common.tag.CommonTags;
 
 public class FRCookingRecipes {
    public static final int FAST_COOKING = 100;
@@ -26,17 +26,17 @@ public class FRCookingRecipes {
          .addIngredient(Items.NETHER_WART)
          .addIngredient(Items.NETHER_WART)
          .addIngredient((ItemLike)FRItems.COFFEE_BEANS.get())
-         .addIngredient(ForgeTags.RAW_BEEF)
+         .addIngredient(CommonTags.Items.FOODS_RAW_BEEF)
          .unlockedByAnyIngredient(Items.BLAZE_POWDER, Items.NETHER_WART, Items.BEEF, (ItemLike)FRItems.COFFEE_BEANS.get())
          .setRecipeBookTab(CookingPotRecipeBookTab.MEALS)
          .build(consumer);
       FRCookingPotRecipeBuilder.cookingPotRecipe((ItemLike)FRItems.TEA_CURRY.get(), 1, 200, 0.35F)
          .addIngredient((ItemLike)FRItems.YELLOW_TEA_LEAVES.get())
          .addIngredient((ItemLike)FRItems.YELLOW_TEA_LEAVES.get())
-         .addIngredient(ForgeTags.RAW_CHICKEN)
-         .addIngredient(ForgeTags.CROPS_CABBAGE)
-         .addIngredient(ForgeTags.CROPS_ONION)
-         .addIngredient(ForgeTags.CROPS_RICE)
+         .addIngredient(CommonTags.Items.FOODS_RAW_CHICKEN)
+         .addIngredient(CommonTags.Items.CROPS_CABBAGE)
+         .addIngredient(CommonTags.Items.CROPS_ONION)
+         .addIngredient(CommonTags.Items.CROPS_RICE)
          .unlockedByAnyIngredient(
             Items.CHICKEN,
             (ItemLike)ModItems.CABBAGE.get(),

@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,6 +21,13 @@ import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FREffects;
 
 public class TeaSackBlock extends Block {
+   public static final MapCodec<TeaSackBlock> CODEC = simpleCodec(TeaSackBlock::new);
+
+   @Override
+   public MapCodec<TeaSackBlock> codec() {
+      return CODEC;
+   }
+
    public TeaSackBlock(Properties properties) {
       super(properties);
    }
@@ -30,9 +39,9 @@ public class TeaSackBlock extends Block {
       } else if (state.getBlock() == FRBlocks.YELLOW_TEA_LEAVES_SACK.get()) {
          cloud.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 20, 0));
       } else if (state.getBlock() == FRBlocks.BLACK_TEA_LEAVES_SACK.get()) {
-         cloud.addEffect(new MobEffectInstance((MobEffect)FREffects.CAFFEINATED.get(), 20, 0));
+         cloud.addEffect(new MobEffectInstance(FREffects.CAFFEINATED, 20, 0));
       } else if (state.getBlock() == FRBlocks.COFFEE_BEANS_SACK.get()) {
-         cloud.addEffect(new MobEffectInstance((MobEffect)FREffects.CAFFEINATED.get(), 20, 1));
+         cloud.addEffect(new MobEffectInstance(FREffects.CAFFEINATED, 20, 1));
       }
 
       cloud.setDuration(200);

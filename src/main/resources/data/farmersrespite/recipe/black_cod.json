@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:foods/cooked_cod"
+    },
+    {
+      "item": "farmersrespite:black_tea_leaves"
+    },
+    {
+      "item": "minecraft:bowl"
+    },
+    {
+      "tag": "c:crops/cabbage"
+    },
+    {
+      "item": "farmersdelight:cooked_rice"
+    }
+  ],
+  "result": {"count": 1, "id": "farmersrespite:black_cod"}
+}

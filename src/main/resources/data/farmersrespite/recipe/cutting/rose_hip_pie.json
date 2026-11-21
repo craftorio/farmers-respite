@@ -1,0 +1,14 @@
+{
+  "type": "farmersdelight:cutting",
+  "ingredients": [
+    {
+      "item": "farmersrespite:rose_hip_pie"
+    }
+  ],
+  "result": [
+    {"item": {"count": 4, "id": "farmersrespite:rose_hip_pie_slice"}}
+  ],
+  "tool": {
+    "tag": "c:tools/knife"
+  }
+}

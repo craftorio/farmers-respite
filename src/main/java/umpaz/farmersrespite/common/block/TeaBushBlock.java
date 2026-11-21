@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -12,6 +14,8 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.AxeItem;
@@ -41,13 +45,20 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.ForgeHooks;
+import net.neoforged.neoforge.common.CommonHooks;
 import umpaz.farmersrespite.common.FRConfiguration;
 import umpaz.farmersrespite.common.registry.FRAdvancments;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRItems;
 
 public class TeaBushBlock extends BushBlock implements BonemealableBlock {
+   public static final MapCodec<TeaBushBlock> CODEC = simpleCodec(TeaBushBlock::new);
+
+   @Override
+   public MapCodec<TeaBushBlock> codec() {
+      return CODEC;
+   }
+
    public static final IntegerProperty AGE = BlockStateProperties.AGE_3;
    public static final BooleanProperty STUNTED = BooleanProperty.create("stunted");
    public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
@@ -83,7 +94,7 @@ public class TeaBushBlock extends BushBlock implements BonemealableBlock {
       builder.add(new Property[]{AGE, STUNTED, HALF});
    }
 
-   public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+   public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
       return new ItemStack((ItemLike)FRItems.TEA_SEEDS.get());
    }
 
@@ -107,19 +118,19 @@ public class TeaBushBlock extends BushBlock implements BonemealableBlock {
    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
       if (state.getValue(HALF) == DoubleBlockHalf.LOWER
          && !(Boolean)state.getValue(STUNTED)
-         && ForgeHooks.onCropsGrowPre(level, pos, state, random.nextInt(12) == 0)
+         && CommonHooks.canCropGrow(level, pos, state, random.nextInt(12) == 0)
          && (Integer)state.getValue(AGE) < 3) {
          this.performBonemeal(level, random, pos, state);
-         ForgeHooks.onCropsGrowPost(level, pos, state);
+         CommonHooks.fireCropGrowPost(level, pos, state);
       }
    }
 
-   public void playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
+   public BlockState playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player pPlayer) {
       if (!pLevel.isClientSide && pPlayer.isCreative()) {
          preventCreativeDropFromBottomPart(pLevel, pPos, pState, pPlayer);
       }
 
-      super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
+      return super.playerWillDestroy(pLevel, pPos, pState, pPlayer);
    }
 
    @Nullable
@@ -146,7 +157,7 @@ public class TeaBushBlock extends BushBlock implements BonemealableBlock {
       }
    }
 
-   public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult result) {
+   public ItemInteractionResult useItemOn(ItemStack pUsedStack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult result) {
       int i = (Integer)state.getValue(AGE);
       ItemStack heldStack = player.getItemInHand(handIn);
       Item item = heldStack.getItem();
@@ -181,23 +192,23 @@ public class TeaBushBlock extends BushBlock implements BonemealableBlock {
 
          world.playSound(player, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS, 1.0F, 0.8F + world.random.nextFloat() * 0.4F);
          popResource(world, pos, new ItemStack(Items.STICK, k));
-         heldStack.hurtAndBreak(1, player, p_226874_1_ -> player.broadcastBreakEvent(handIn));
-         return InteractionResult.sidedSuccess(world.isClientSide);
+         heldStack.hurtAndBreak(1, player, handIn == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+         return ItemInteractionResult.sidedSuccess(world.isClientSide);
       } else if (item instanceof AxeItem && !(Boolean)state.getValue(STUNTED)) {
          world.setBlockAndUpdate(pos, (BlockState)state.setValue(STUNTED, true));
          world.playSound(player, pos, SoundEvents.AXE_STRIP, SoundSource.BLOCKS, 1.0F, 1.0F);
-         heldStack.hurtAndBreak(1, player, p_226874_1_ -> player.broadcastBreakEvent(handIn));
+         heldStack.hurtAndBreak(1, player, handIn == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
          if (player instanceof ServerPlayer) {
             FRAdvancments.STUNT_TEA_BUSH.trigger((ServerPlayer)player);
          }
 
-         return InteractionResult.sidedSuccess(world.isClientSide);
+         return ItemInteractionResult.sidedSuccess(world.isClientSide);
       } else {
-         return super.use(state, world, pos, player, handIn, result);
+         return super.useItemOn(pUsedStack, state, world, pos, player, handIn, result);
       }
    }
 
-   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean isClient) {
+   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
       int i = (Integer)state.getValue(AGE);
       return i != 3 ? (Boolean)FRConfiguration.BONE_MEAL_TEA.get() : false;
    }

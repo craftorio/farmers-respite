@@ -4,16 +4,26 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.FlowerPotBlock;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import umpaz.farmersrespite.common.block.entity.KettleBlockEntity;
 import umpaz.farmersrespite.common.registry.FRAdvancments;
+import umpaz.farmersrespite.common.registry.FRBlockEntityTypes;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRItems;
 
 @EventBusSubscriber(modid = "farmersrespite", bus = Bus.MOD)
 public class FRCommonSetup {
+   @SubscribeEvent
+   public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+      event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, FRBlockEntityTypes.KETTLE.get(), KettleBlockEntity::getItemHandler);
+      event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, FRBlockEntityTypes.KETTLE.get(), (kettle, side) -> kettle.getFluidTank());
+   }
+
    @SubscribeEvent
    public static void init(FMLCommonSetupEvent event) {
       event.enqueueWork(FRCommonSetup::registerCompostables);

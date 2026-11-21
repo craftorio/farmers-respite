@@ -6,9 +6,9 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.data.LanguageProvider;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRFluids;
 import umpaz.farmersrespite.common.registry.FRItems;
@@ -19,8 +19,8 @@ public class FRLang extends LanguageProvider {
    }
 
    protected void addTranslations() {
-      Set<RegistryObject<Block>> blocks = new HashSet<>(FRBlocks.BLOCKS.getEntries());
-      Set<RegistryObject<Item>> items = new HashSet<>(FRItems.ITEMS.getEntries());
+      Set<DeferredHolder<Block, Block>> blocks = new HashSet<>(FRBlocks.BLOCKS.getEntries());
+      Set<DeferredHolder<Item, Item>> items = new HashSet<>(FRItems.ITEMS.getEntries());
       blocks.remove(FRBlocks.SMALL_TEA_BUSH);
       blocks.remove(FRBlocks.COFFEE_BUSH);
       blocks.forEach(b -> {
@@ -74,7 +74,7 @@ public class FRLang extends LanguageProvider {
          "Coffee doesn't grow well in the overworld! Plant it near some more typical crops so it can feed on them and grow."
       );
       this.add("farmersrespite.advancement.stunt_tea_bush.desc", "Stunt a tea bushes' growth with an axe to keep it safe for decoration!");
-      Set<RegistryObject<FluidType>> fluidTypes = new HashSet<>(FRFluids.FLUID_TYPES.getEntries());
+      Set<DeferredHolder<FluidType, FluidType>> fluidTypes = new HashSet<>(FRFluids.FLUID_TYPES.getEntries());
       fluidTypes.remove(FRFluids.GAMBLERS_TEA_TYPE);
       fluidTypes.remove(FRFluids.LONG_GAMBLERS_TEA_TYPE);
       fluidTypes.remove(FRFluids.STRONG_GAMBLERS_TEA_TYPE);

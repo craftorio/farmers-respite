@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import java.util.Random;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -31,14 +33,20 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.PlantType;
+import net.neoforged.neoforge.common.CommonHooks;
 import umpaz.farmersrespite.common.FRConfiguration;
 import umpaz.farmersrespite.common.block.state.WitherRootsUtil;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRItems;
 
 public class CoffeeBushBlock extends BushBlock implements BonemealableBlock {
+   public static final MapCodec<CoffeeBushBlock> CODEC = simpleCodec(CoffeeBushBlock::new);
+
+   @Override
+   public MapCodec<CoffeeBushBlock> codec() {
+      return CODEC;
+   }
+
    public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
    private static final VoxelShape SHAPE_LOWER = Shapes.or(
       Block.box(0.0, 6.0, 0.0, 16.0, 18.0, 16.0), Block.box(5.0, 0.0, 5.0, 11.0, 6.0, 11.0)
@@ -56,10 +64,6 @@ public class CoffeeBushBlock extends BushBlock implements BonemealableBlock {
       return state.getValue(HALF) == DoubleBlockHalf.UPPER ? SHAPE_UPPER : SHAPE_LOWER;
    }
 
-   public PlantType getPlantType(BlockGetter level, BlockPos pos) {
-      return PlantType.NETHER;
-   }
-
    protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
       return state.is(Blocks.BASALT) || state.is(Blocks.POLISHED_BASALT) || state.is(Blocks.SMOOTH_BASALT) || state.is(Blocks.MAGMA_BLOCK);
    }
@@ -68,7 +72,7 @@ public class CoffeeBushBlock extends BushBlock implements BonemealableBlock {
       builder.add(new Property[]{HALF});
    }
 
-   public ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state) {
+   public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state) {
       return new ItemStack((ItemLike)FRItems.COFFEE_BEANS.get());
    }
 
@@ -104,7 +108,7 @@ public class CoffeeBushBlock extends BushBlock implements BonemealableBlock {
 
          if (state.getValue(HALF) == DoubleBlockHalf.LOWER
             && level.isEmptyBlock(pos.above().above())
-            && ForgeHooks.onCropsGrowPre(level, pos, state, random.nextInt(2) == 0)) {
+            && CommonHooks.canCropGrow(level, pos, state, random.nextInt(2) == 0)) {
             if (neighborState.getBlock() instanceof CropBlock) {
                level.setBlockAndUpdate(neighborPos, witherRootsState);
                this.performBonemeal(level, random, pos, state);
@@ -113,16 +117,16 @@ public class CoffeeBushBlock extends BushBlock implements BonemealableBlock {
             }
          }
 
-         ForgeHooks.onCropsGrowPost(level, pos, state);
+         CommonHooks.fireCropGrowPost(level, pos, state);
       }
    }
 
-   public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
       if (!level.isClientSide && player.isCreative()) {
          preventCreativeDropFromBottomPart(level, pos, state, player);
       }
 
-      super.playerWillDestroy(level, pos, state, player);
+      return super.playerWillDestroy(level, pos, state, player);
    }
 
    @Nullable
@@ -155,7 +159,7 @@ public class CoffeeBushBlock extends BushBlock implements BonemealableBlock {
       return state.getValue(HALF) == DoubleBlockHalf.LOWER ? this.mayPlaceOn(level.getBlockState(blockpos), level, blockpos) : blockstate.is(this);
    }
 
-   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean isClient) {
+   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
       return (Boolean)FRConfiguration.BONE_MEAL_COFFEE.get();
    }
 

@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import vectorwing.farmersdelight.common.crafting.ingredient.ChanceResult;
 import vectorwing.farmersdelight.common.registry.ModRecipeSerializers;
 
@@ -64,17 +64,17 @@ public class FRCuttingBoardRecipeBuilder {
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn) {
-      ResourceLocation location = ForgeRegistries.ITEMS.getKey(this.ingredient.getItems()[0].getItem());
+      ResourceLocation location = BuiltInRegistries.ITEM.getKey(this.ingredient.getItems()[0].getItem());
       this.build(consumerIn, "farmersrespite:cutting/" + location.getPath());
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn, String save) {
-      ResourceLocation resourcelocation = ForgeRegistries.ITEMS.getKey(this.ingredient.getItems()[0].getItem());
-      if (new ResourceLocation(save).equals(resourcelocation)) {
+      ResourceLocation resourcelocation = BuiltInRegistries.ITEM.getKey(this.ingredient.getItems()[0].getItem());
+      if (ResourceLocation.parse(save).equals(resourcelocation)) {
          throw new IllegalStateException("Cutting Recipe " + save + " should remove its 'save' argument");
       }
 
-      this.build(consumerIn, new ResourceLocation(save));
+      this.build(consumerIn, ResourceLocation.parse(save));
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn, ResourceLocation id) {
@@ -107,7 +107,7 @@ public class FRCuttingBoardRecipeBuilder {
 
          for (ChanceResult result : this.results) {
             JsonObject jsonobject = new JsonObject();
-            jsonobject.addProperty("item", ForgeRegistries.ITEMS.getKey(result.getStack().getItem()).toString());
+            jsonobject.addProperty("item", BuiltInRegistries.ITEM.getKey(result.getStack().getItem()).toString());
             if (result.getStack().getCount() > 1) {
                jsonobject.addProperty("count", result.getStack().getCount());
             }

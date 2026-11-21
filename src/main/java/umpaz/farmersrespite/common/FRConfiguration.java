@@ -1,13 +1,13 @@
 package umpaz.farmersrespite.common;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.common.ForgeConfigSpec.BooleanValue;
-import net.minecraftforge.common.ForgeConfigSpec.Builder;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
+import net.neoforged.neoforge.common.ModConfigSpec.Builder;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 @EventBusSubscriber
 public class FRConfiguration {
-   public static ForgeConfigSpec COMMON_CONFIG;
+   public static ModConfigSpec COMMON_CONFIG;
    public static final String CATEGORY_SETTINGS = "settings";
    public static BooleanValue BONE_MEAL_TEA;
    public static BooleanValue BONE_MEAL_COFFEE;

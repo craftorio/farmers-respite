@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -18,12 +20,19 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.ForgeHooks;
+import net.neoforged.neoforge.common.CommonHooks;
 import umpaz.farmersrespite.common.FRConfiguration;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRItems;
 
 public class SmallTeaBushBlock extends BushBlock implements BonemealableBlock {
+   public static final MapCodec<SmallTeaBushBlock> CODEC = simpleCodec(SmallTeaBushBlock::new);
+
+   @Override
+   public MapCodec<SmallTeaBushBlock> codec() {
+      return CODEC;
+   }
+
    public static final VoxelShape SHAPE = Block.box(4.0, 0.0, 4.0, 12.0, 11.0, 12.0);
 
    public SmallTeaBushBlock(Properties properties) {
@@ -34,7 +43,7 @@ public class SmallTeaBushBlock extends BushBlock implements BonemealableBlock {
       return SHAPE;
    }
 
-   public ItemStack getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state) {
+   public ItemStack getCloneItemStack(LevelReader world, BlockPos pos, BlockState state) {
       return new ItemStack((ItemLike)FRItems.TEA_SEEDS.get());
    }
 
@@ -52,13 +61,13 @@ public class SmallTeaBushBlock extends BushBlock implements BonemealableBlock {
    }
 
    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-      if (ForgeHooks.onCropsGrowPre(level, pos, state, random.nextInt(20) == 0)) {
+      if (CommonHooks.canCropGrow(level, pos, state, random.nextInt(20) == 0)) {
          this.performBonemeal(level, random, pos, state);
-         ForgeHooks.onCropsGrowPost(level, pos, state);
+         CommonHooks.fireCropGrowPost(level, pos, state);
       }
    }
 
-   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean isClient) {
+   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
       return (Boolean)FRConfiguration.BONE_MEAL_TEA.get();
    }
 

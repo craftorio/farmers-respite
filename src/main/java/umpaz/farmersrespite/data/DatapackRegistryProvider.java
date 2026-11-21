@@ -6,8 +6,8 @@ import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraftforge.common.data.DatapackBuiltinEntriesProvider;
-import net.minecraftforge.registries.ForgeRegistries.Keys;
+import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import umpaz.farmersrespite.data.worldgen.biome.FRBiomeModifiers;
 import umpaz.farmersrespite.data.worldgen.features.FRFeatures;
 import umpaz.farmersrespite.data.worldgen.placement.FRPlacements;
@@ -17,7 +17,7 @@ public class DatapackRegistryProvider extends DatapackBuiltinEntriesProvider {
       .add(Registries.DAMAGE_TYPE, FRDamageTypes::bootstrap)
       .add(Registries.CONFIGURED_FEATURE, FRFeatures::bootstrap)
       .add(Registries.PLACED_FEATURE, FRPlacements::bootstrap)
-      .add(Keys.BIOME_MODIFIERS, FRBiomeModifiers::bootstrap);
+      .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, FRBiomeModifiers::bootstrap);
 
    public DatapackRegistryProvider(PackOutput output, CompletableFuture<Provider> provider) {
       super(output, provider, REGISTRIES, Set.of("minecraft", "farmersrespite"));

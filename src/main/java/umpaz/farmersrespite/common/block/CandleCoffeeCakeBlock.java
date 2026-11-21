@@ -1,5 +1,9 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import java.util.Map;
@@ -11,6 +15,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
@@ -44,6 +49,16 @@ import umpaz.farmersrespite.common.registry.FRItems;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
 public class CandleCoffeeCakeBlock extends AbstractCandleBlock {
+   public static final MapCodec<CandleCoffeeCakeBlock> CODEC = RecordCodecBuilder.mapCodec(
+      inst -> inst.group(BuiltInRegistries.BLOCK.byNameCodec().fieldOf("candle").forGetter(block -> block.candle), propertiesCodec())
+         .apply(inst, CandleCoffeeCakeBlock::new)
+   );
+
+   @Override
+   public MapCodec<CandleCoffeeCakeBlock> codec() {
+      return CODEC;
+   }
+
    public static final BooleanProperty LIT = AbstractCandleBlock.LIT;
    protected static final VoxelShape CAKE_SHAPE = Block.box(1.0, 0.0, 1.0, 15.0, 8.0, 15.0);
    protected static final VoxelShape CANDLE_SHAPE = Block.box(7.0, 8.0, 7.0, 9.0, 14.0, 9.0);
@@ -67,44 +82,44 @@ public class CandleCoffeeCakeBlock extends AbstractCandleBlock {
       return SHAPE;
    }
 
-   public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
+   public ItemInteractionResult useItemOn(ItemStack pUsedStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult result) {
       ItemStack itemstack = player.getItemInHand(hand);
       if (!(!itemstack.is(Items.FLINT_AND_STEEL) && !itemstack.is(Items.FIRE_CHARGE) && FRBlocks.COFFEE_CAKE.get() instanceof CoffeeCakeBlock cakeBlock)) {
-         return InteractionResult.PASS;
+         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
       } else if (candleHit(result) && player.getItemInHand(hand).isEmpty() && (Boolean)state.getValue(LIT)) {
          extinguish(player, state, level, pos);
-         return InteractionResult.sidedSuccess(level.isClientSide);
+         return ItemInteractionResult.sidedSuccess(level.isClientSide);
       } else {
          return itemstack.is(ModTags.KNIVES) ? this.cutSlice(level, pos, state, player) : this.eatSlice(level, pos, state, player);
       }
    }
 
-   public InteractionResult eatSlice(Level level, BlockPos pos, BlockState state, Player player) {
+   public ItemInteractionResult eatSlice(Level level, BlockPos pos, BlockState state, Player player) {
       if (!player.canEat(false)) {
-         return InteractionResult.PASS;
+         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
       }
 
       player.awardStat(Stats.EAT_CAKE_SLICE);
       player.getFoodData().eat(2, 0.1F);
       if (!level.isClientSide()) {
-         player.addEffect(new MobEffectInstance((MobEffect)FREffects.CAFFEINATED.get(), 600, 0));
+         player.addEffect(new MobEffectInstance(FREffects.CAFFEINATED, 600, 0));
       }
 
       level.gameEvent(player, GameEvent.EAT, pos);
       level.setBlock(pos, (BlockState)((Block)FRBlocks.COFFEE_CAKE.get()).defaultBlockState().setValue(CoffeeCakeBlock.BITES, 1), 3);
       Block.dropResources(state, level, pos);
-      return InteractionResult.SUCCESS;
+      return ItemInteractionResult.SUCCESS;
    }
 
-   public InteractionResult cutSlice(Level level, BlockPos pos, BlockState state, Player player) {
+   public ItemInteractionResult cutSlice(Level level, BlockPos pos, BlockState state, Player player) {
       level.setBlock(pos, (BlockState)((Block)FRBlocks.COFFEE_CAKE.get()).defaultBlockState().setValue(CoffeeCakeBlock.BITES, 1), 3);
       Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack((ItemLike)FRItems.COFFEE_CAKE_SLICE.get()));
       Block.dropResources(state, level, pos);
       level.playSound(null, pos, SoundEvents.WOOL_BREAK, SoundSource.PLAYERS, 0.8F, 0.8F);
-      return InteractionResult.SUCCESS;
+      return ItemInteractionResult.SUCCESS;
    }
 
-   public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+   public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
       return new ItemStack((ItemLike)FRBlocks.COFFEE_CAKE.get());
    }
 
@@ -134,7 +149,7 @@ public class CandleCoffeeCakeBlock extends AbstractCandleBlock {
       return true;
    }
 
-   public boolean isPathfindable(BlockState p_152870_, BlockGetter p_152871_, BlockPos p_152872_, PathComputationType p_152873_) {
+   public boolean isPathfindable(BlockState p_152870_, PathComputationType p_152873_) {
       return false;
    }
 

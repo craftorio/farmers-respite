@@ -2,6 +2,7 @@ package umpaz.farmersrespite.client.gui;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.Font.DisplayMode;
@@ -12,8 +13,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Matrix4f;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
@@ -24,7 +25,12 @@ public class KettleTooltip implements ClientTooltipComponent {
    private final FluidStack mealStack;
 
    public KettleTooltip(KettleTooltip.KettleTooltipComponent tooltip) {
-      this.mealStack = tooltip.mealStack;
+      CompoundTag tank = tooltip.fluidTag();
+      if (tank == null || tank.isEmpty() || Minecraft.getInstance().level == null) {
+         this.mealStack = FluidStack.EMPTY;
+      } else {
+         this.mealStack = FluidStack.parseOptional(Minecraft.getInstance().level.registryAccess(), tank);
+      }
    }
 
    public int getHeight() {
@@ -75,6 +81,6 @@ public class KettleTooltip implements ClientTooltipComponent {
       }
    }
 
-   public record KettleTooltipComponent(FluidStack mealStack) implements TooltipComponent {
+   public record KettleTooltipComponent(CompoundTag fluidTag) implements TooltipComponent {
    }
 }

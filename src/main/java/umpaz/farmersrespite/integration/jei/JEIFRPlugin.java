@@ -21,7 +21,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import umpaz.farmersrespite.client.gui.KettleScreen;
 import umpaz.farmersrespite.common.block.entity.container.KettleMenu;
 import umpaz.farmersrespite.common.registry.FRItems;
@@ -32,7 +32,7 @@ import umpaz.farmersrespite.integration.jei.category.BrewingRecipeCategory;
 @MethodsReturnNonnullByDefault
 @JeiPlugin
 public class JEIFRPlugin implements IModPlugin {
-   private static final ResourceLocation ID = new ResourceLocation("farmersrespite", "jei_plugin");
+   private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("farmersrespite", "jei_plugin");
 
    public void registerCategories(IRecipeCategoryRegistration registry) {
       registry.addRecipeCategories(

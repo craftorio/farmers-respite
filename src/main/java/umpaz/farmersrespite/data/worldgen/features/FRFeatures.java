@@ -3,7 +3,7 @@ package umpaz.farmersrespite.data.worldgen.features;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.features.FeatureUtils;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceKey;
@@ -25,14 +25,14 @@ import vectorwing.farmersdelight.common.world.configuration.WildCropConfiguratio
 
 public class FRFeatures {
    public static final ResourceKey<ConfiguredFeature<?, ?>> PATCH_WILD_TEA_BUSH = ResourceKey.create(
-      Registries.CONFIGURED_FEATURE, new ResourceLocation("farmersrespite", "patch_wild_tea_bush")
+      Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath("farmersrespite", "patch_wild_tea_bush")
    );
    public static final ResourceKey<ConfiguredFeature<?, ?>> PATCH_COFFEE_BUSH = ResourceKey.create(
-      Registries.CONFIGURED_FEATURE, new ResourceLocation("farmersrespite", "patch_wild_coffee_bush")
+      Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath("farmersrespite", "patch_wild_coffee_bush")
    );
    private static final BlockPos BLOCK_BELOW = new BlockPos(0, -1, 0);
 
-   public static void bootstrap(BootstapContext<ConfiguredFeature<?, ?>> context) {
+   public static void bootstrap(BootstrapContext<ConfiguredFeature<?, ?>> context) {
       FeatureUtils.register(
          context,
          PATCH_WILD_TEA_BUSH,

@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,14 +32,20 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.PlantType;
+import net.neoforged.neoforge.common.CommonHooks;
 import umpaz.farmersrespite.common.FRConfiguration;
 import umpaz.farmersrespite.common.block.state.WitherRootsUtil;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRItems;
 
 public class CoffeeBushTopBlock extends BushBlock implements BonemealableBlock {
+   public static final MapCodec<CoffeeBushTopBlock> CODEC = simpleCodec(CoffeeBushTopBlock::new);
+
+   @Override
+   public MapCodec<CoffeeBushTopBlock> codec() {
+      return CODEC;
+   }
+
    public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
    private static final VoxelShape SHAPE_LOWER = Shapes.or(
       Block.box(0.0, 6.0, 0.0, 16.0, 18.0, 16.0), Block.box(5.0, 0.0, 5.0, 11.0, 6.0, 11.0)
@@ -55,10 +63,6 @@ public class CoffeeBushTopBlock extends BushBlock implements BonemealableBlock {
       return state.getValue(HALF) == DoubleBlockHalf.UPPER ? SHAPE_UPPER : SHAPE_LOWER;
    }
 
-   public PlantType getPlantType(BlockGetter world, BlockPos pos) {
-      return PlantType.NETHER;
-   }
-
    protected boolean mayPlaceOn(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
       return pState.is((Block)FRBlocks.COFFEE_STEM.get())
          || pState.is((Block)FRBlocks.COFFEE_STEM_MIDDLE.get())
@@ -69,7 +73,7 @@ public class CoffeeBushTopBlock extends BushBlock implements BonemealableBlock {
       builder.add(new Property[]{HALF});
    }
 
-   public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+   public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
       return new ItemStack((ItemLike)FRItems.COFFEE_BEANS.get());
    }
 
@@ -105,7 +109,7 @@ public class CoffeeBushTopBlock extends BushBlock implements BonemealableBlock {
 
          if (state.getValue(HALF) == DoubleBlockHalf.LOWER
             && level.isEmptyBlock(pos.above().above())
-            && ForgeHooks.onCropsGrowPre(level, pos, state, random.nextInt(2) == 0)) {
+            && CommonHooks.canCropGrow(level, pos, state, random.nextInt(2) == 0)) {
             if (neighborState.getBlock() instanceof CropBlock) {
                level.setBlockAndUpdate(neighborPos, witherRootsState);
                this.performBonemeal(level, random, pos, state);
@@ -114,11 +118,11 @@ public class CoffeeBushTopBlock extends BushBlock implements BonemealableBlock {
             }
          }
 
-         ForgeHooks.onCropsGrowPost(level, pos, state);
+         CommonHooks.fireCropGrowPost(level, pos, state);
       }
    }
 
-   public void playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player player) {
+   public BlockState playerWillDestroy(Level pLevel, BlockPos pPos, BlockState pState, Player player) {
       if (!pLevel.isClientSide && player.isCreative()) {
          preventCreativeDropFromBottomPart(pLevel, pPos, pState, player);
       }
@@ -145,7 +149,7 @@ public class CoffeeBushTopBlock extends BushBlock implements BonemealableBlock {
          pLevel.destroyBlock(pPos.below().below().below(), true, player);
       }
 
-      super.playerWillDestroy(pLevel, pPos, pState, player);
+      return super.playerWillDestroy(pLevel, pPos, pState, player);
    }
 
    @Nullable
@@ -178,7 +182,7 @@ public class CoffeeBushTopBlock extends BushBlock implements BonemealableBlock {
       return state.getValue(HALF) == DoubleBlockHalf.LOWER ? this.mayPlaceOn(world.getBlockState(blockpos), world, blockpos) : blockstate.is(this);
    }
 
-   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean isClient) {
+   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
       if (state.getValue(HALF) == DoubleBlockHalf.LOWER) {
          BlockPos blockpos = pos.below();
          BlockState blockstate = level.getBlockState(blockpos);

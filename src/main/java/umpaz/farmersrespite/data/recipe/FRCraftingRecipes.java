@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.data.recipe;
 
+import net.neoforged.neoforge.common.Tags;
+
 import java.util.function.Consumer;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger.TriggerInstance;
 import net.minecraft.data.recipes.FinishedRecipe;
@@ -11,7 +13,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import umpaz.farmersrespite.common.registry.FRItems;
 import vectorwing.farmersdelight.common.registry.ModItems;
-import vectorwing.farmersdelight.common.tag.ForgeTags;
+import vectorwing.farmersdelight.common.tag.CommonTags;
 
 public class FRCraftingRecipes {
    public static void register(Consumer<FinishedRecipe> consumer) {
@@ -28,12 +30,12 @@ public class FRCraftingRecipes {
          .requires((ItemLike)FRItems.COFFEE_CAKE_SLICE.get())
          .requires((ItemLike)FRItems.COFFEE_CAKE_SLICE.get())
          .unlockedBy("has_cake_slice", TriggerInstance.hasItems(new ItemLike[]{(ItemLike)FRItems.COFFEE_CAKE_SLICE.get()}))
-         .save(consumer, new ResourceLocation("farmersrespite", "coffee_cake_from_slices"));
+         .save(consumer, ResourceLocation.fromNamespaceAndPath("farmersrespite", "coffee_cake_from_slices"));
       ShapelessRecipeBuilder.shapeless(RecipeCategory.FOOD, (ItemLike)FRItems.BLACK_COD.get())
-         .requires(ForgeTags.COOKED_FISHES_COD)
+         .requires(CommonTags.Items.FOODS_COOKED_COD)
          .requires((ItemLike)FRItems.BLACK_TEA_LEAVES.get())
          .requires(Items.BOWL)
-         .requires(ForgeTags.CROPS_CABBAGE)
+         .requires(CommonTags.Items.CROPS_CABBAGE)
          .requires((ItemLike)ModItems.COOKED_RICE.get())
          .unlockedBy("has_cod", TriggerInstance.hasItems(new ItemLike[]{Items.COOKED_COD}))
          .save(consumer);
@@ -71,7 +73,7 @@ public class FRCraftingRecipes {
          .pattern("msm")
          .pattern("cec")
          .pattern("www")
-         .define('m', ForgeTags.MILK)
+         .define('m', Tags.Items.DRINKS_MILK)
          .define('s', Items.SUGAR)
          .define('c', (ItemLike)FRItems.COFFEE_BEANS.get())
          .define('e', Items.EGG)
@@ -82,7 +84,7 @@ public class FRCraftingRecipes {
          .pattern("mhm")
          .pattern("rrr")
          .pattern("sps")
-         .define('m', ForgeTags.MILK)
+         .define('m', Tags.Items.DRINKS_MILK)
          .define('h', Items.HONEY_BOTTLE)
          .define('r', (ItemLike)FRItems.ROSE_HIPS.get())
          .define('s', Items.SUGAR)
@@ -108,7 +110,7 @@ public class FRCraftingRecipes {
          .pattern("rr")
          .define('r', (ItemLike)FRItems.ROSE_HIP_PIE_SLICE.get())
          .unlockedBy("has_rose_hip_pie_slice", TriggerInstance.hasItems(new ItemLike[]{(ItemLike)FRItems.ROSE_HIP_PIE_SLICE.get()}))
-         .save(consumer, new ResourceLocation("farmersrespite", "rose_hip_pie_from_slices"));
+         .save(consumer, ResourceLocation.fromNamespaceAndPath("farmersrespite", "rose_hip_pie_from_slices"));
       ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, (ItemLike)FRItems.GREEN_TEA_LEAVES_SACK.get())
          .pattern("lll")
          .pattern("lll")

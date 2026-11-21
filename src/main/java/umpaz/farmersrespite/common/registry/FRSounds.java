@@ -1,14 +1,16 @@
 package umpaz.farmersrespite.common.registry;
 
+import net.minecraft.core.registries.Registries;
+
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class FRSounds {
-   public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, "farmersrespite");
-   public static final RegistryObject<SoundEvent> BLOCK_KETTLE_WHISTLE = SOUNDS.register(
-      "block.kettle.whistle", () -> SoundEvent.createVariableRangeEvent(new ResourceLocation("farmersrespite", "block.kettle.whistle"))
+   public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, "farmersrespite");
+   public static final DeferredHolder<SoundEvent, SoundEvent> BLOCK_KETTLE_WHISTLE = SOUNDS.register(
+      "block.kettle.whistle", () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath("farmersrespite", "block.kettle.whistle"))
    );
 }

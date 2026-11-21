@@ -13,14 +13,14 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.fluids.FluidStack;
 import umpaz.farmersrespite.common.block.entity.container.KettleMenu;
 import vectorwing.farmersdelight.common.utility.TextUtils;
 
 @ParametersAreNonnullByDefault
 public class KettleScreen extends AbstractContainerScreen<KettleMenu> {
-   private static final ResourceLocation BACKGROUND_TEXTURE = new ResourceLocation("farmersrespite", "textures/gui/kettle.png");
+   private static final ResourceLocation BACKGROUND_TEXTURE = ResourceLocation.fromNamespaceAndPath("farmersrespite", "textures/gui/kettle.png");
    private static final Rectangle HEAT_ICON = new Rectangle(41, 55, 17, 15);
    private static final Rectangle PROGRESS_ARROW = new Rectangle(62, 25, 0, 17);
 
@@ -34,7 +34,7 @@ public class KettleScreen extends AbstractContainerScreen<KettleMenu> {
    }
 
    public void render(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
-      this.renderBackground(gui);
+      this.renderBackground(gui, mouseX, mouseY, partialTicks);
       super.render(gui, mouseX, mouseY, partialTicks);
       this.renderTankTooltip(gui, mouseX, mouseY);
       this.renderTooltip(gui, mouseX, mouseY);

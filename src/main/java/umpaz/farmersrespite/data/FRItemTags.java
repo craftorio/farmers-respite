@@ -9,7 +9,7 @@ import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider.TagLookup;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import umpaz.farmersrespite.common.registry.FRItems;
 import umpaz.farmersrespite.common.tag.FRTags;
 

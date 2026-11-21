@@ -27,3 +27,6 @@ docsOut
 
 # Files from Forge MDK
 forge*changelog.txt
+
+# Local compile deps (Farmer's Delight, JEI). See build.gradle.
+libs/

@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import umpaz.farmersrespite.common.registry.FRRecipeSerializers;
 
 public class KettlePouringRecipeBuilder {
@@ -34,17 +34,17 @@ public class KettlePouringRecipeBuilder {
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn) {
-      ResourceLocation outputLocation = ForgeRegistries.ITEMS.getKey(this.output.getItem());
+      ResourceLocation outputLocation = BuiltInRegistries.ITEM.getKey(this.output.getItem());
       this.build(consumerIn, "farmersrespite:pouring/" + outputLocation.getPath());
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn, String save) {
-      ResourceLocation resourcelocation = ForgeRegistries.ITEMS.getKey(this.output.getItem());
-      if (new ResourceLocation(save).equals(resourcelocation)) {
+      ResourceLocation resourcelocation = BuiltInRegistries.ITEM.getKey(this.output.getItem());
+      if (ResourceLocation.parse(save).equals(resourcelocation)) {
          throw new IllegalStateException("Pouring Recipe " + save + " should remove its 'save' argument");
       }
 
-      this.build(consumerIn, new ResourceLocation(save));
+      this.build(consumerIn, ResourceLocation.parse(save));
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn, ResourceLocation id) {
@@ -68,20 +68,20 @@ public class KettlePouringRecipeBuilder {
 
       public void serializeRecipeData(JsonObject json) {
          JsonObject objectContainer = new JsonObject();
-         objectContainer.addProperty("item", ForgeRegistries.ITEMS.getKey(this.container.getItem()).toString());
+         objectContainer.addProperty("item", BuiltInRegistries.ITEM.getKey(this.container.getItem()).toString());
          json.add("container", objectContainer);
          if (this.container.hasTag()) {
             objectContainer.addProperty("nbt", this.container.getTag().toString());
          }
 
          JsonObject objectContainer1 = new JsonObject();
-         objectContainer1.addProperty("item", ForgeRegistries.ITEMS.getKey(this.output.getItem()).toString());
+         objectContainer1.addProperty("item", BuiltInRegistries.ITEM.getKey(this.output.getItem()).toString());
          if (this.output.hasTag()) {
             objectContainer1.addProperty("nbt", this.output.getTag().toString());
          }
 
          json.add("output", objectContainer1);
-         json.addProperty("fluid", ForgeRegistries.FLUIDS.getKey(this.fluid).toString());
+         json.addProperty("fluid", BuiltInRegistries.FLUID.getKey(this.fluid).toString());
          json.addProperty("amount", this.amount);
       }
 

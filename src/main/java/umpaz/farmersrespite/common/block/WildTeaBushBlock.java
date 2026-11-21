@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -12,6 +14,14 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class WildTeaBushBlock extends TallGrassBlock {
+   public static final MapCodec<WildTeaBushBlock> CODEC = simpleCodec(WildTeaBushBlock::new);
+
+   @Override
+   @SuppressWarnings("unchecked")
+   public MapCodec<TallGrassBlock> codec() {
+      return (MapCodec<TallGrassBlock>) (MapCodec<?>) CODEC;
+   }
+
    protected static final float AABB_OFFSET = 6.0F;
    protected static final VoxelShape SHAPE = Block.box(3.0, 0.0, 3.0, 13.0, 12.0, 13.0);
 
@@ -23,7 +33,7 @@ public class WildTeaBushBlock extends TallGrassBlock {
       return SHAPE;
    }
 
-   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean bool) {
+   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
       return false;
    }
 

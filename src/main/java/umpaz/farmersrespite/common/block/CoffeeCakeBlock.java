@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -8,6 +10,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
@@ -27,11 +30,19 @@ import umpaz.farmersrespite.common.registry.FRItems;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
 public class CoffeeCakeBlock extends CakeBlock {
+   public static final MapCodec<CoffeeCakeBlock> CODEC = simpleCodec(CoffeeCakeBlock::new);
+
+   @Override
+   @SuppressWarnings("unchecked")
+   public MapCodec<CakeBlock> codec() {
+      return (MapCodec<CakeBlock>) (MapCodec<?>) CODEC;
+   }
+
    public CoffeeCakeBlock(Properties properties) {
       super(properties);
    }
 
-   public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
+   public ItemInteractionResult useItemOn(ItemStack pUsedStack, BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
       ItemStack stack = player.getItemInHand(handIn);
       Item item = stack.getItem();
       if (stack.is(ItemTags.CANDLES) && (Integer)state.getValue(BITES) == 0) {
@@ -45,7 +56,7 @@ public class CoffeeCakeBlock extends CakeBlock {
             worldIn.setBlockAndUpdate(pos, CandleCoffeeCakeBlock.byCandle(block, this));
             worldIn.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
             player.awardStat(Stats.ITEM_USED.get(item));
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
          }
       }
 
@@ -55,26 +66,26 @@ public class CoffeeCakeBlock extends CakeBlock {
          }
 
          if (this.eatSlice(worldIn, pos, state, player).consumesAction()) {
-            return InteractionResult.SUCCESS;
+            return ItemInteractionResult.SUCCESS;
          }
 
          if (stack.isEmpty()) {
-            return InteractionResult.CONSUME;
+            return ItemInteractionResult.CONSUME;
          }
       }
 
       return stack.is(ModTags.KNIVES) ? this.cutSlice(worldIn, pos, state, player) : this.eatSlice(worldIn, pos, state, player);
    }
 
-   public InteractionResult eatSlice(Level level, BlockPos pos, BlockState state, Player player) {
+   public ItemInteractionResult eatSlice(Level level, BlockPos pos, BlockState state, Player player) {
       if (!player.canEat(false)) {
-         return InteractionResult.PASS;
+         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
       }
 
       player.awardStat(Stats.EAT_CAKE_SLICE);
       player.getFoodData().eat(2, 0.1F);
       if (!level.isClientSide()) {
-         player.addEffect(new MobEffectInstance((MobEffect)FREffects.CAFFEINATED.get(), 600, 0, false, false));
+         player.addEffect(new MobEffectInstance(FREffects.CAFFEINATED, 600, 0, false, false));
       }
 
       int i = (Integer)state.getValue(BITES);
@@ -86,10 +97,10 @@ public class CoffeeCakeBlock extends CakeBlock {
          level.gameEvent(player, GameEvent.BLOCK_DESTROY, pos);
       }
 
-      return InteractionResult.SUCCESS;
+      return ItemInteractionResult.SUCCESS;
    }
 
-   public InteractionResult cutSlice(Level worldIn, BlockPos pos, BlockState state, Player player) {
+   public ItemInteractionResult cutSlice(Level worldIn, BlockPos pos, BlockState state, Player player) {
       int bites = (Integer)state.getValue(BITES);
       if (bites < 6) {
          worldIn.setBlock(pos, (BlockState)state.setValue(BITES, bites + 1), 3);
@@ -99,6 +110,6 @@ public class CoffeeCakeBlock extends CakeBlock {
 
       Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), new ItemStack((ItemLike)FRItems.COFFEE_CAKE_SLICE.get()));
       worldIn.playSound(null, pos, SoundEvents.WOOL_BREAK, SoundSource.PLAYERS, 0.8F, 0.8F);
-      return InteractionResult.SUCCESS;
+      return ItemInteractionResult.SUCCESS;
    }
 }

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "c": {
+      "item": "farmersrespite:coffee_beans"
+    },
+    "e": {
+      "item": "minecraft:egg"
+    },
+    "m": {
+      "tag": "c:drinks/milk"
+    },
+    "s": {
+      "item": "minecraft:sugar"
+    },
+    "w": {
+      "item": "minecraft:wheat"
+    }
+  },
+  "pattern": [
+    "msm",
+    "cec",
+    "www"
+  ],
+  "result": {"count": 1, "id": "farmersrespite:coffee_cake"},
+  "show_notification": true
+}

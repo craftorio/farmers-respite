@@ -17,21 +17,22 @@ import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 import umpaz.farmersrespite.FarmersRespite;
 import umpaz.farmersrespite.common.block.entity.KettleBlockEntity;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRMenuTypes;
 
-public class KettleMenu extends RecipeBookMenu<RecipeWrapper> {
-   public static final ResourceLocation EMPTY_CONTAINER_SLOT_BOTTLE = new ResourceLocation("farmersrespite", "item/empty_container_slot_bottle");
+public class KettleMenu extends RecipeBookMenu<RecipeWrapper, Recipe<RecipeWrapper>> {
+   public static final ResourceLocation EMPTY_CONTAINER_SLOT_BOTTLE = ResourceLocation.fromNamespaceAndPath("farmersrespite", "item/empty_container_slot_bottle");
    public final FluidTank kettleTank;
    public final KettleBlockEntity tileEntity;
    public final ItemStackHandler inventory;
@@ -158,7 +159,7 @@ public class KettleMenu extends RecipeBookMenu<RecipeWrapper> {
       ItemStack remaining = this.inventory.insertItem(0, toInsert, false);
       if (!remaining.isEmpty() && remaining.getCount() == toInsert.getCount()) {
          ItemStack slot0 = this.inventory.getStackInSlot(0);
-         if (slot0.isEmpty() || !ItemStack.isSameItemSameTags(slot0, stack)) {
+         if (slot0.isEmpty() || !ItemStack.isSameItemSameComponents(slot0, stack)) {
             remaining = this.inventory.insertItem(1, remaining, false);
          }
       }
@@ -190,8 +191,8 @@ public class KettleMenu extends RecipeBookMenu<RecipeWrapper> {
       }
    }
 
-   public boolean recipeMatches(Recipe<? super RecipeWrapper> recipe) {
-      return recipe.matches(new RecipeWrapper(this.inventory), this.level);
+   public boolean recipeMatches(RecipeHolder<Recipe<RecipeWrapper>> recipe) {
+      return recipe.value().matches(new RecipeWrapper(this.inventory), this.level);
    }
 
    public int getResultSlotIndex() {

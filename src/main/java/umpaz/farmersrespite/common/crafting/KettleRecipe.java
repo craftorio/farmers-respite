@@ -1,16 +1,16 @@
 package umpaz.farmersrespite.common.crafting;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -19,25 +19,53 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.common.util.RecipeMatcher;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.util.RecipeMatcher;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 import umpaz.farmersrespite.common.registry.FRItems;
 import umpaz.farmersrespite.common.registry.FRRecipeSerializers;
 import umpaz.farmersrespite.common.registry.FRRecipeTypes;
 
 public class KettleRecipe implements Recipe<RecipeWrapper> {
    public static final int INPUT_SLOTS = 2;
-   private final ResourceLocation id;
+   public static final Codec<FluidStack> FLUID_CODEC = RecordCodecBuilder.create(
+      instance -> instance.group(
+            BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(FluidStack::getFluid),
+            Codec.INT.optionalFieldOf("count", 1000).forGetter(FluidStack::getAmount)
+         )
+         .apply(instance, FluidStack::new)
+   );
+   public static final MapCodec<KettleRecipe> CODEC = RecordCodecBuilder.mapCodec(
+      instance -> instance.group(
+            NonNullList.codecOf(Ingredient.CODEC).fieldOf("ingredients").forGetter(KettleRecipe::getIngredients),
+            FLUID_CODEC.fieldOf("base").forGetter(KettleRecipe::getFluidIn),
+            FLUID_CODEC.fieldOf("result").forGetter(KettleRecipe::getFluidOut),
+            Codec.FLOAT.optionalFieldOf("experience", 0.0F).forGetter(KettleRecipe::getExperience),
+            Codec.INT.optionalFieldOf("cookingtime", 200).forGetter(KettleRecipe::getBrewTime)
+         )
+         .apply(instance, KettleRecipe::new)
+   );
+   public static final StreamCodec<RegistryFriendlyByteBuf, KettleRecipe> STREAM_CODEC = StreamCodec.composite(
+      Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()),
+      recipe -> recipe.inputItems,
+      FluidStack.STREAM_CODEC,
+      KettleRecipe::getFluidIn,
+      FluidStack.STREAM_CODEC,
+      KettleRecipe::getFluidOut,
+      ByteBufCodecs.FLOAT,
+      KettleRecipe::getExperience,
+      ByteBufCodecs.VAR_INT,
+      KettleRecipe::getBrewTime,
+      (ingredients, fluidIn, fluidOut, experience, brewTime) -> new KettleRecipe(NonNullList.copyOf(ingredients), fluidIn, fluidOut, experience, brewTime)
+   );
+
    private final NonNullList<Ingredient> inputItems;
    private final FluidStack fluidIn;
    private final FluidStack fluidOut;
    private final float experience;
    private final int brewTime;
 
-   public KettleRecipe(ResourceLocation id, NonNullList<Ingredient> inputItems, FluidStack fluidIn, FluidStack fluidOut, float experience, int brewTime) {
-      this.id = id;
+   public KettleRecipe(NonNullList<Ingredient> inputItems, FluidStack fluidIn, FluidStack fluidOut, float experience, int brewTime) {
       this.inputItems = inputItems;
       this.fluidIn = fluidIn;
       this.fluidOut = fluidOut;
@@ -45,10 +73,7 @@ public class KettleRecipe implements Recipe<RecipeWrapper> {
       this.brewTime = brewTime;
    }
 
-   public ResourceLocation getId() {
-      return this.id;
-   }
-
+   @Override
    public NonNullList<Ingredient> getIngredients() {
       return this.inputItems;
    }
@@ -61,12 +86,14 @@ public class KettleRecipe implements Recipe<RecipeWrapper> {
       return this.fluidOut;
    }
 
-   public ItemStack getResultItem(RegistryAccess registryAccess) {
+   @Override
+   public ItemStack getResultItem(HolderLookup.Provider registries) {
       return ItemStack.EMPTY;
    }
 
-   public ItemStack assemble(RecipeWrapper inv, RegistryAccess access) {
-      return null;
+   @Override
+   public ItemStack assemble(RecipeWrapper inv, HolderLookup.Provider registries) {
+      return ItemStack.EMPTY;
    }
 
    public float getExperience() {
@@ -77,117 +104,51 @@ public class KettleRecipe implements Recipe<RecipeWrapper> {
       return this.brewTime;
    }
 
+   @Override
    public boolean matches(RecipeWrapper inv, Level level) {
       List<ItemStack> inputs = new ArrayList<>();
-      int i = 0;
+      int count = 0;
 
-      for (int j = 0; j < 2; j++) {
-         ItemStack itemstack = inv.getItem(j);
-         if (!itemstack.isEmpty()) {
-            i++;
-            inputs.add(itemstack);
+      for (int slot = 0; slot < INPUT_SLOTS; slot++) {
+         ItemStack stack = inv.getItem(slot);
+         if (!stack.isEmpty()) {
+            count++;
+            inputs.add(stack);
          }
       }
 
-      return i == this.inputItems.size() && RecipeMatcher.findMatches(inputs, this.inputItems) != null;
+      return count == this.inputItems.size() && RecipeMatcher.findMatches(inputs, this.inputItems) != null;
    }
 
+   @Override
    public boolean canCraftInDimensions(int width, int height) {
       return width * height >= this.inputItems.size();
    }
 
+   @Override
    public RecipeSerializer<?> getSerializer() {
-      return (RecipeSerializer<?>)FRRecipeSerializers.BREWING.get();
+      return FRRecipeSerializers.BREWING.get();
    }
 
+   @Override
    public RecipeType<?> getType() {
-      return (RecipeType<?>)FRRecipeTypes.BREWING.get();
+      return FRRecipeTypes.BREWING.get();
    }
 
+   @Override
    public ItemStack getToastSymbol() {
       return new ItemStack((ItemLike)FRItems.KETTLE.get());
    }
 
    public static class Serializer implements RecipeSerializer<KettleRecipe> {
-      public KettleRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-         NonNullList<Ingredient> inputItemsIn = readIngredients(GsonHelper.getAsJsonArray(json, "ingredients"));
-         if (inputItemsIn.isEmpty()) {
-            throw new JsonParseException("No ingredients for brewing recipe");
-         }
-
-         if (inputItemsIn.size() > 2) {
-            throw new JsonParseException("Too many ingredients for brewing recipe! The max is 2");
-         }
-
-         JsonObject baseFluid = json.getAsJsonObject("base");
-         if (baseFluid == null) {
-            throw new JsonParseException("No base fluid for brewing recipe");
-         }
-
-         String fluid = GsonHelper.getAsString(baseFluid, "fluid");
-         Fluid fluidObj = (Fluid)ForgeRegistries.FLUIDS.getValue(new ResourceLocation(fluid));
-         if (fluidObj == null) {
-            throw new JsonParseException("Invalid fluid: " + fluid);
-         }
-
-         FluidStack fluidIn = new FluidStack(fluidObj, GsonHelper.getAsInt(baseFluid, "count", 200));
-         JsonObject resultFluid = json.getAsJsonObject("result");
-         if (resultFluid == null) {
-            throw new JsonParseException("No result fluid for brewing recipe");
-         }
-
-         fluid = GsonHelper.getAsString(resultFluid, "fluid");
-         fluidObj = (Fluid)ForgeRegistries.FLUIDS.getValue(new ResourceLocation(fluid));
-         if (fluidObj == null) {
-            throw new JsonParseException("Invalid fluid: " + fluid);
-         }
-
-         FluidStack fluidOut = new FluidStack(fluidObj, GsonHelper.getAsInt(resultFluid, "count", 200));
-         float experienceIn = GsonHelper.getAsFloat(json, "experience", 0.0F);
-         int brewTimeIn = GsonHelper.getAsInt(json, "brewingtime", 200);
-         return new KettleRecipe(recipeId, inputItemsIn, fluidIn, fluidOut, experienceIn, brewTimeIn);
+      @Override
+      public MapCodec<KettleRecipe> codec() {
+         return CODEC;
       }
 
-      private static NonNullList<Ingredient> readIngredients(JsonArray ingredientArray) {
-         NonNullList<Ingredient> nonnulllist = NonNullList.create();
-
-         for (int i = 0; i < ingredientArray.size(); i++) {
-            Ingredient ingredient = Ingredient.fromJson(ingredientArray.get(i));
-            if (!ingredient.isEmpty()) {
-               nonnulllist.add(ingredient);
-            }
-         }
-
-         return nonnulllist;
-      }
-
-      @Nullable
-      public KettleRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-         int i = buffer.readVarInt();
-         NonNullList<Ingredient> inputItemsIn = NonNullList.withSize(i, Ingredient.EMPTY);
-
-         for (int j = 0; j < inputItemsIn.size(); j++) {
-            inputItemsIn.set(j, Ingredient.fromNetwork(buffer));
-         }
-
-         FluidStack fluidIn = buffer.readFluidStack();
-         FluidStack fluidOut = buffer.readFluidStack();
-         float experienceIn = buffer.readFloat();
-         int brewTimeIn = buffer.readVarInt();
-         return new KettleRecipe(recipeId, inputItemsIn, fluidIn, fluidOut, experienceIn, brewTimeIn);
-      }
-
-      public void toNetwork(FriendlyByteBuf buffer, KettleRecipe recipe) {
-         buffer.writeVarInt(recipe.inputItems.size());
-
-         for (Ingredient ingredient : recipe.inputItems) {
-            ingredient.toNetwork(buffer);
-         }
-
-         buffer.writeFluidStack(recipe.fluidIn);
-         buffer.writeFluidStack(recipe.fluidOut);
-         buffer.writeFloat(recipe.experience);
-         buffer.writeVarInt(recipe.brewTime);
+      @Override
+      public StreamCodec<RegistryFriendlyByteBuf, KettleRecipe> streamCodec() {
+         return STREAM_CODEC;
       }
    }
 }

@@ -15,8 +15,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.minecraft.core.registries.BuiltInRegistries;
 import umpaz.farmersrespite.common.registry.FRRecipeSerializers;
 
 @ParametersAreNonnullByDefault
@@ -72,13 +72,13 @@ public class KettleRecipeBuilder {
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn) {
-      ResourceLocation baseFluidLocation = ForgeRegistries.FLUIDS.getKey(this.fluidIn.getFluid());
-      ResourceLocation resultFluidLocation = ForgeRegistries.FLUIDS.getKey(this.fluidOut.getFluid());
+      ResourceLocation baseFluidLocation = BuiltInRegistries.FLUID.getKey(this.fluidIn.getFluid());
+      ResourceLocation resultFluidLocation = BuiltInRegistries.FLUID.getKey(this.fluidOut.getFluid());
       this.build(consumerIn, "farmersrespite:brewing/" + resultFluidLocation.getPath() + "_from_" + baseFluidLocation.getPath());
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn, String save) {
-      this.build(consumerIn, new ResourceLocation(save));
+      this.build(consumerIn, ResourceLocation.parse(save));
    }
 
    public void build(Consumer<FinishedRecipe> consumerIn, ResourceLocation id) {
@@ -111,11 +111,11 @@ public class KettleRecipeBuilder {
 
          json.add("ingredients", arrayIngredients);
          JsonObject basefluid = new JsonObject();
-         basefluid.addProperty("fluid", ForgeRegistries.FLUIDS.getKey(this.fluidIn.getFluid()).toString());
+         basefluid.addProperty("fluid", BuiltInRegistries.FLUID.getKey(this.fluidIn.getFluid()).toString());
          basefluid.addProperty("count", this.fluidIn.getAmount());
          json.add("base", basefluid);
          JsonObject resultFluid = new JsonObject();
-         resultFluid.addProperty("fluid", ForgeRegistries.FLUIDS.getKey(this.fluidOut.getFluid()).toString());
+         resultFluid.addProperty("fluid", BuiltInRegistries.FLUID.getKey(this.fluidOut.getFluid()).toString());
          resultFluid.addProperty("count", this.fluidOut.getAmount());
          json.add("result", resultFluid);
          if (this.experience > 0.0F) {

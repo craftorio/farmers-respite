@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -8,6 +10,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -30,14 +33,20 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.PlantType;
+import net.neoforged.neoforge.common.CommonHooks;
 import umpaz.farmersrespite.common.FRConfiguration;
 import umpaz.farmersrespite.common.block.state.WitherRootsUtil;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRItems;
 
 public class CoffeeDoubleStemBlock extends BushBlock implements BonemealableBlock {
+   public static final MapCodec<CoffeeDoubleStemBlock> CODEC = simpleCodec(CoffeeDoubleStemBlock::new);
+
+   @Override
+   public MapCodec<CoffeeDoubleStemBlock> codec() {
+      return CODEC;
+   }
+
    public static final VoxelShape SHAPE = Block.box(5.0, 0.0, 5.0, 11.0, 16.0, 11.0);
    public static final IntegerProperty AGE = BlockStateProperties.AGE_2;
    public static final IntegerProperty AGE1 = IntegerProperty.create("age1", 0, 2);
@@ -54,10 +63,6 @@ public class CoffeeDoubleStemBlock extends BushBlock implements BonemealableBloc
       return SHAPE;
    }
 
-   public PlantType getPlantType(BlockGetter world, BlockPos pos) {
-      return PlantType.NETHER;
-   }
-
    protected boolean mayPlaceOn(BlockState state, BlockGetter pLevel, BlockPos pPos) {
       return state.is(Blocks.BASALT) || state.is(Blocks.POLISHED_BASALT) || state.is(Blocks.SMOOTH_BASALT) || state.is(Blocks.MAGMA_BLOCK);
    }
@@ -66,7 +71,7 @@ public class CoffeeDoubleStemBlock extends BushBlock implements BonemealableBloc
       builder.add(new Property[]{AGE, AGE1, FACING});
    }
 
-   public ItemStack getCloneItemStack(BlockGetter level, BlockPos pos, BlockState state) {
+   public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
       return new ItemStack((ItemLike)FRItems.COFFEE_BEANS.get());
    }
 
@@ -91,7 +96,7 @@ public class CoffeeDoubleStemBlock extends BushBlock implements BonemealableBloc
             witherRootsState = ((Block)FRBlocks.WILD_COFFEE_BUSH.get()).defaultBlockState();
          }
 
-         if (ForgeHooks.onCropsGrowPre(level, pos, state, random.nextInt(2) == 0)) {
+         if (CommonHooks.canCropGrow(level, pos, state, random.nextInt(2) == 0)) {
             if (neighborState.getBlock() instanceof CropBlock) {
                level.setBlockAndUpdate(neighborPos, witherRootsState);
                if (rand == 0) {
@@ -120,16 +125,16 @@ public class CoffeeDoubleStemBlock extends BushBlock implements BonemealableBloc
             }
          }
 
-         ForgeHooks.onCropsGrowPost(level, pos, state);
+         CommonHooks.fireCropGrowPost(level, pos, state);
       }
    }
 
-   public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult result) {
+   public ItemInteractionResult useItemOn(ItemStack pUsedStack, BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult result) {
       int i = (Integer)state.getValue(AGE);
       int j = (Integer)state.getValue(AGE1);
       boolean flag = i == 2 || j == 2;
       if (!flag && player.getItemInHand(handIn).getItem() == Items.BONE_MEAL) {
-         return InteractionResult.PASS;
+         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
       }
 
       if (flag) {
@@ -143,13 +148,13 @@ public class CoffeeDoubleStemBlock extends BushBlock implements BonemealableBloc
 
          popResource(world, pos, new ItemStack((ItemLike)FRItems.COFFEE_BERRIES.get(), 1));
          world.playSound(player, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS, 1.0F, 0.8F + world.random.nextFloat() * 0.4F);
-         return InteractionResult.sidedSuccess(world.isClientSide);
+         return ItemInteractionResult.sidedSuccess(world.isClientSide);
       } else {
-         return super.use(state, world, pos, player, handIn, result);
+         return super.useItemOn(pUsedStack, state, world, pos, player, handIn, result);
       }
    }
 
-   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, boolean isClient) {
+   public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
       int i = (Integer)state.getValue(AGE);
       int j = (Integer)state.getValue(AGE1);
       return (Boolean)FRConfiguration.BONE_MEAL_COFFEE.get() && (i != 2 || j != 2);

@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.common.block;
 
+import com.mojang.serialization.MapCodec;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -26,7 +28,7 @@ import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -35,6 +37,13 @@ import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.data.FRDamageTypes;
 
 public class WitherRootsBlock extends BushBlock implements BonemealableBlock {
+   public static final MapCodec<WitherRootsBlock> CODEC = simpleCodec(WitherRootsBlock::new);
+
+   @Override
+   public MapCodec<WitherRootsBlock> codec() {
+      return CODEC;
+   }
+
    private static final VoxelShape SHAPE = Block.box(2.0, 0.0, 2.0, 14.0, 14.0, 14.0);
    private static final VoxelShape SHAPE_SMALL = Block.box(2.0, 0.0, 2.0, 14.0, 6.0, 14.0);
    private static final VoxelShape WILD_COFFEE = Block.box(5.0, 0.0, 5.0, 11.0, 11.0, 11.0);
@@ -88,7 +97,7 @@ public class WitherRootsBlock extends BushBlock implements BonemealableBlock {
       }
    }
 
-   public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
       if (!level.isClientSide) {
          AreaEffectCloud cloud = new AreaEffectCloud(level, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
          cloud.addEffect(new MobEffectInstance(MobEffects.WITHER, 200, 0));
@@ -99,24 +108,24 @@ public class WitherRootsBlock extends BushBlock implements BonemealableBlock {
          level.addFreshEntity(cloud);
       }
 
-      super.playerWillDestroy(level, pos, state, player);
+      return super.playerWillDestroy(level, pos, state, player);
    }
 
-   public boolean isPathfindable(@Nonnull BlockState state, @Nonnull BlockGetter world, @Nonnull BlockPos pos, @Nonnull PathComputationType path) {
+   public boolean isPathfindable(BlockState state, PathComputationType path) {
       return false;
    }
 
    @Nullable
-   public BlockPathTypes getBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob) {
-      return BlockPathTypes.DAMAGE_OTHER;
+   public PathType getBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob) {
+      return PathType.DAMAGE_OTHER;
    }
 
    @Nullable
-   public BlockPathTypes getAdjacentBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob, BlockPathTypes originalType) {
-      return BlockPathTypes.DANGER_OTHER;
+   public PathType getAdjacentBlockPathType(BlockState state, BlockGetter level, BlockPos pos, @Nullable Mob mob, PathType originalType) {
+      return PathType.DANGER_OTHER;
    }
 
-   public boolean isValidBonemealTarget(LevelReader levelReader, BlockPos pos, BlockState state, boolean isClientSide) {
+   public boolean isValidBonemealTarget(LevelReader levelReader, BlockPos pos, BlockState state) {
       return false;
    }
 

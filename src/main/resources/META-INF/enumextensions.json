@@ -1,0 +1,10 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/world/inventory/RecipeBookType",
+      "name": "FARMERSRESPITE_BREWING",
+      "constructor": "()V",
+      "parameters": []
+    }
+  ]
+}

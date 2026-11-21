@@ -48,7 +48,7 @@ public class BrewingRecipeCategory implements IRecipeCategory<KettleUnionRecipe>
 
    public BrewingRecipeCategory(IGuiHelper helper, IModIdHelper modIdHelper) {
       this.modIdHelper = modIdHelper;
-      ResourceLocation backgroundImage = new ResourceLocation("farmersrespite", "textures/gui/jei/kettle_jei.png");
+      ResourceLocation backgroundImage = ResourceLocation.fromNamespaceAndPath("farmersrespite", "textures/gui/jei/kettle_jei.png");
       this.background = helper.createDrawable(backgroundImage, 29, 16, 117, 57);
       this.icon = helper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack((ItemLike)FRItems.KETTLE.get()));
       this.heatIndicator = helper.createDrawable(backgroundImage, 176, 0, 17, 15);

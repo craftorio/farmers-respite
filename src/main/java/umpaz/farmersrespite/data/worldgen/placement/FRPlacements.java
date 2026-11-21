@@ -4,7 +4,7 @@ import java.util.List;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -17,13 +17,13 @@ import umpaz.farmersrespite.data.worldgen.features.FRFeatures;
 
 public class FRPlacements {
    public static final ResourceKey<PlacedFeature> PATCH_WILD_TEA_BUSH = ResourceKey.create(
-      Registries.PLACED_FEATURE, new ResourceLocation("farmersrespite", "patch_wild_tea_bush")
+      Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath("farmersrespite", "patch_wild_tea_bush")
    );
    public static final ResourceKey<PlacedFeature> PATCH_COFFEE_BUSH = ResourceKey.create(
-      Registries.PLACED_FEATURE, new ResourceLocation("farmersrespite", "patch_wild_coffee_bush")
+      Registries.PLACED_FEATURE, ResourceLocation.fromNamespaceAndPath("farmersrespite", "patch_wild_coffee_bush")
    );
 
-   public static void bootstrap(BootstapContext<PlacedFeature> context) {
+   public static void bootstrap(BootstrapContext<PlacedFeature> context) {
       HolderGetter<ConfiguredFeature<?, ?>> configuredFeatureLookup = context.lookup(Registries.CONFIGURED_FEATURE);
       Holder<ConfiguredFeature<?, ?>> patchWildTeaBushConfiguredFeature = configuredFeatureLookup.getOrThrow(FRFeatures.PATCH_WILD_TEA_BUSH);
       Holder<ConfiguredFeature<?, ?>> patchCoffeeBushConfiguredFeature = configuredFeatureLookup.getOrThrow(FRFeatures.PATCH_COFFEE_BUSH);

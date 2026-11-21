@@ -1,5 +1,7 @@
 package umpaz.farmersrespite.data;
 
+import net.minecraft.core.registries.Registries;
+
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -9,9 +11,9 @@ import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ForgeRegistries.Keys;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import vectorwing.farmersdelight.common.tag.ModTags;
 
@@ -19,9 +21,9 @@ public class FRBlockTags extends IntrinsicHolderTagsProvider<Block> {
    public FRBlockTags(PackOutput output, CompletableFuture<Provider> registries, @Nullable ExistingFileHelper existingFileHelper) {
       super(
          output,
-         Keys.BLOCKS,
+         Registries.BLOCK,
          registries,
-         attribute -> (ResourceKey)ForgeRegistries.BLOCKS.getResourceKey(attribute).get(),
+         attribute -> (ResourceKey)BuiltInRegistries.BLOCK.getResourceKey(attribute).get(),
          "farmersrespite",
          existingFileHelper
       );

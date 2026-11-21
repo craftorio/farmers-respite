@@ -13,10 +13,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Component.Serializer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -29,11 +33,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.inventory.RecipeHolder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -43,17 +46,15 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 import umpaz.farmersrespite.common.block.KettleBlock;
 import umpaz.farmersrespite.common.block.entity.container.KettleMenu;
 import umpaz.farmersrespite.common.block.entity.inventory.KettleItemHandler;
@@ -66,20 +67,18 @@ import umpaz.farmersrespite.common.registry.FRSounds;
 import umpaz.farmersrespite.common.utility.FRTextUtils;
 import vectorwing.farmersdelight.common.block.entity.HeatableBlockEntity;
 import vectorwing.farmersdelight.common.block.entity.SyncedBlockEntity;
-import vectorwing.farmersdelight.common.mixin.accessor.RecipeManagerAccessor;
 import vectorwing.farmersdelight.common.utility.ItemUtils;
 
-public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider, HeatableBlockEntity, Nameable, RecipeHolder {
+public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider, HeatableBlockEntity, Nameable {
    public static final int WATER_BOTTLE_AMOUNT = 250;
    public static final int DRINK_DISPLAY_SLOT = 2;
    public static final int CONTAINER_SLOT = 3;
    public static final int OUTPUT_SLOT = 4;
    public static final int INVENTORY_SIZE = 5;
    private final ItemStackHandler inventory = this.createHandler();
-   private final LazyOptional<IItemHandler> inputHandler = LazyOptional.of(() -> new KettleItemHandler(this.inventory, Direction.UP));
-   private final LazyOptional<IItemHandler> outputHandler = LazyOptional.of(() -> new KettleItemHandler(this.inventory, Direction.DOWN));
+   private final IItemHandler inputHandler = new KettleItemHandler(this.inventory, Direction.UP);
+   private final IItemHandler outputHandler = new KettleItemHandler(this.inventory, Direction.DOWN);
    private final FluidTank fluidTank;
-   private final LazyOptional<FluidTank> fluidTankHandler;
    private int brewTime;
    private int brewTimeTotal;
    private ItemStack drinkContainerStack = ItemStack.EMPTY;
@@ -91,42 +90,36 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
    public KettleBlockEntity(BlockPos pos, BlockState state) {
       super((BlockEntityType)FRBlockEntityTypes.KETTLE.get(), pos, state);
       this.fluidTank = this.createFluidTank();
-      this.fluidTankHandler = LazyOptional.of(() -> this.fluidTank);
    }
 
-   public static FluidStack getMealFromItem(ItemStack kettleStack) {
+   public static CompoundTag blockEntityData(ItemStack kettleStack) {
+      CustomData data = kettleStack.get(DataComponents.BLOCK_ENTITY_DATA);
+      return data == null ? new CompoundTag() : data.copyTag();
+   }
+
+   public static FluidStack getMealFromItem(ItemStack kettleStack, HolderLookup.Provider registries) {
       if (!kettleStack.is((Item)FRItems.KETTLE.get())) {
          return FluidStack.EMPTY;
       }
-
-      CompoundTag compound = kettleStack.getTagElement("BlockEntityTag");
-      return compound != null && compound.contains("FluidTank") ? FluidStack.loadFluidStackFromNBT(compound.getCompound("FluidTank")) : FluidStack.EMPTY;
+      CompoundTag compound = blockEntityData(kettleStack);
+      return compound.contains("FluidTank") ? FluidStack.parseOptional(registries, compound.getCompound("FluidTank")) : FluidStack.EMPTY;
    }
 
-   public static ItemStack getContainerFromItem(ItemStack kettleStack) {
-      if (!kettleStack.is((Item)FRItems.KETTLE.get())) {
-         return ItemStack.EMPTY;
-      }
-
-      CompoundTag compound = kettleStack.getTagElement("BlockEntityTag");
-      return compound != null ? ItemStack.of(compound.getCompound("Container")) : ItemStack.EMPTY;
-   }
-
-   public void load(CompoundTag compound) {
-      super.load(compound);
-      this.inventory.deserializeNBT(compound.getCompound("Inventory"));
+   @Override
+   public void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+      super.loadAdditional(compound, registries);
+      this.inventory.deserializeNBT(registries, compound.getCompound("Inventory"));
       this.brewTime = compound.getInt("BrewTime");
-      this.fluidTank.readFromNBT(compound.getCompound("FluidTank"));
+      this.fluidTank.readFromNBT(registries, compound.getCompound("FluidTank"));
       this.brewTimeTotal = compound.getInt("BrewTimeTotal");
-      this.drinkContainerStack = ItemStack.of(compound.getCompound("Container"));
+      this.drinkContainerStack = ItemStack.parseOptional(registries, compound.getCompound("Container"));
       if (compound.contains("CustomName", 8)) {
-         this.customName = Serializer.fromJson(compound.getString("CustomName"));
+         this.customName = Serializer.fromJson(compound.getString("CustomName"), registries);
       }
 
       CompoundTag compoundRecipes = compound.getCompound("RecipesUsed");
-
       for (String key : compoundRecipes.getAllKeys()) {
-         this.usedRecipeTracker.put(new ResourceLocation(key), compoundRecipes.getInt(key));
+         this.usedRecipeTracker.put(ResourceLocation.parse(key), compoundRecipes.getInt(key));
       }
    }
 
@@ -140,7 +133,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
                kettle.fluidTank.getFluidAmount() >= recipe.get().getAmount()
                   && (
                      output.isEmpty() && slotOut.isEmpty()
-                        || ItemHandlerHelper.canItemStacksStack(slotOut, recipe.get().getOutput().copyWithCount(output.getCount() + 1))
+                        || ItemStack.isSameItemSameComponents(slotOut, recipe.get().getOutput().copyWithCount(output.getCount() + 1))
                   );
                changed = true
             ) {
@@ -151,7 +144,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
                   break;
                }
 
-               kettle.fluidTank.drain(new FluidStack(kettle.fluidTank.getFluid(), recipe.get().getAmount()), FluidAction.EXECUTE);
+               kettle.fluidTank.drain(kettle.fluidTank.getFluid().copyWithAmount(recipe.get().getAmount()), FluidAction.EXECUTE);
                slotIn.shrink(recipe.get().getContainer().getCount());
                if (output.isEmpty()) {
                   output = recipe.get().getOutput().copy();
@@ -176,7 +169,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
                   && slotIn.getCount() >= recipe.get().getContainer().getCount()
                   && (
                      output.isEmpty() && slotOut.isEmpty()
-                        || ItemHandlerHelper.canItemStacksStack(slotOut, recipe.get().getContainer().copyWithCount(output.getCount() + 1))
+                        || ItemStack.isSameItemSameComponents(slotOut, recipe.get().getContainer().copyWithCount(output.getCount() + 1))
                   );
                changed = true
             ) {
@@ -203,9 +196,8 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
          }
       }
 
-      LazyOptional<IFluidHandlerItem> fluidHandler = slotIn.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
-      IFluidHandlerItem iFluidItemHandler = (IFluidHandlerItem)fluidHandler.orElse(null);
-      if (fluidHandler.isPresent() && !slotIn.isEmpty()) {
+      IFluidHandlerItem iFluidItemHandler = slotIn.getCapability(Capabilities.FluidHandler.ITEM);
+      if (iFluidItemHandler != null && !slotIn.isEmpty()) {
          if (kettle.fluidTank.getFluid().isFluidEqual(iFluidItemHandler.getFluidInTank(0)) || kettle.fluidTank.getFluid().isEmpty()) {
             int amountToDrain = kettle.fluidTank.getCapacity() - kettle.fluidTank.getFluidAmount();
             int amount = iFluidItemHandler.drain(amountToDrain, FluidAction.SIMULATE).getAmount();
@@ -224,9 +216,9 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
             }
          } else if (!kettle.fluidTank.getFluid().isEmpty() && iFluidItemHandler.isFluidValid(0, kettle.fluidTank.getFluid())) {
             int amountToDrain = kettle.fluidTank.getFluidAmount();
-            int amount = iFluidItemHandler.fill(new FluidStack(kettle.fluidTank.getFluid(), amountToDrain), FluidAction.SIMULATE);
+            int amount = iFluidItemHandler.fill(kettle.fluidTank.getFluid().copyWithAmount(amountToDrain), FluidAction.SIMULATE);
             if (amount > 0) {
-               iFluidItemHandler.fill(new FluidStack(kettle.fluidTank.getFluid(), amountToDrain), FluidAction.EXECUTE);
+               iFluidItemHandler.fill(kettle.fluidTank.getFluid().copyWithAmount(amountToDrain), FluidAction.EXECUTE);
                kettle.fluidTank.drain(amountToDrain, FluidAction.EXECUTE);
                if (amount <= amountToDrain) {
                   slotIn.setCount(0);
@@ -245,49 +237,49 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
       return output;
    }
 
-   public void saveAdditional(CompoundTag compound) {
-      super.saveAdditional(compound);
+   @Override
+   public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+      super.saveAdditional(compound, registries);
       compound.putInt("BrewTime", this.brewTime);
       compound.putInt("BrewTimeTotal", this.brewTimeTotal);
-      compound.put("Container", this.drinkContainerStack.serializeNBT());
+      compound.put("Container", this.drinkContainerStack.saveOptional(registries));
       if (this.customName != null) {
-         compound.putString("CustomName", Serializer.toJson(this.customName));
+         compound.putString("CustomName", Serializer.toJson(this.customName, registries));
       }
 
-      compound.put("FluidTank", this.fluidTank.writeToNBT(new CompoundTag()));
-      compound.put("Inventory", this.inventory.serializeNBT());
+      compound.put("FluidTank", this.fluidTank.writeToNBT(registries, new CompoundTag()));
+      compound.put("Inventory", this.inventory.serializeNBT(registries));
       CompoundTag compoundRecipes = new CompoundTag();
       this.usedRecipeTracker.forEach((recipeId, craftedAmount) -> compoundRecipes.putInt(recipeId.toString(), craftedAmount));
       compound.put("RecipesUsed", compoundRecipes);
    }
 
-   private CompoundTag writeItems(CompoundTag compound) {
-      super.saveAdditional(compound);
-      compound.put("Container", this.drinkContainerStack.serializeNBT());
-      compound.put("Inventory", this.inventory.serializeNBT());
-      compound.put("FluidTank", this.fluidTank.writeToNBT(new CompoundTag()));
+   private CompoundTag writeItems(CompoundTag compound, HolderLookup.Provider registries) {
+      super.saveAdditional(compound, registries);
+      compound.put("Container", this.drinkContainerStack.saveOptional(registries));
+      compound.put("Inventory", this.inventory.serializeNBT(registries));
+      compound.put("FluidTank", this.fluidTank.writeToNBT(registries, new CompoundTag()));
       return compound;
    }
 
-   public CompoundTag writeMeal(CompoundTag compound) {
+   public CompoundTag writeMeal(CompoundTag compound, HolderLookup.Provider registries) {
       if (this.getOutput().isEmpty()) {
          return compound;
       }
 
       ItemStackHandler drops = new ItemStackHandler(5);
-
       for (int i = 0; i < 5; i++) {
          drops.setStackInSlot(i, i == 2 ? this.inventory.getStackInSlot(i) : ItemStack.EMPTY);
       }
 
       if (this.customName != null) {
-         compound.putString("CustomName", Serializer.toJson(this.customName));
+         compound.putString("CustomName", Serializer.toJson(this.customName, registries));
       }
 
-      compound.put("Container", this.drinkContainerStack.serializeNBT());
-      compound.put("Inventory", drops.serializeNBT());
+      compound.put("Container", this.drinkContainerStack.saveOptional(registries));
+      compound.put("Inventory", drops.serializeNBT(registries));
       if (!this.fluidTank.isEmpty()) {
-         compound.put("FluidTank", this.fluidTank.writeToNBT(new CompoundTag()));
+         compound.put("FluidTank", this.fluidTank.writeToNBT(registries, new CompoundTag()));
       }
 
       return compound;
@@ -297,8 +289,8 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
       boolean isHeated = kettle.isHeated(level, pos);
       boolean didInventoryChange = false;
       if (isHeated && kettle.hasInput()) {
-         Optional<KettleRecipe> recipe = kettle.getMatchingRecipe(new RecipeWrapper(kettle.inventory));
-         if (recipe.isPresent() && kettle.canBrew(recipe.get(), kettle)) {
+         Optional<RecipeHolder<KettleRecipe>> recipe = kettle.getMatchingRecipe(new RecipeWrapper(kettle.inventory));
+         if (recipe.isPresent() && kettle.canBrew(recipe.get().value(), kettle)) {
             didInventoryChange = kettle.processBrewing(recipe.get(), kettle);
          } else {
             kettle.brewTime = 0;
@@ -327,6 +319,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
          .getRecipeManager()
          .getAllRecipesFor(FRRecipeTypes.KETTLE_POURING.get())
          .stream()
+         .map(RecipeHolder::value)
          .filter(
             recipe -> (fluid.isEmpty() || recipe.getFluid().isSame(fluid.getFluid()))
                && (matchesPouringContainer(stack, recipe) || matchesPouringOutput(stack, recipe))
@@ -335,11 +328,11 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
    }
 
    public static boolean isWaterBottle(ItemStack stack) {
-      return stack.is(Items.POTION) && PotionUtils.getPotion(stack) == Potions.WATER;
+      return stack.is(Items.POTION) && stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).is(Potions.WATER);
    }
 
    private static boolean matchesPouringContainer(ItemStack stack, KettlePouringRecipe recipe) {
-      return ItemStack.isSameItemSameTags(stack, recipe.getContainer());
+      return ItemStack.isSameItemSameComponents(stack, recipe.getContainer());
    }
 
    private static boolean matchesPouringOutput(ItemStack stack, KettlePouringRecipe recipe) {
@@ -347,7 +340,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
          return recipe.getFluid().isSame(Fluids.WATER);
       }
 
-      return ItemStack.isSameItemSameTags(stack, recipe.getOutput());
+      return ItemStack.isSameItemSameComponents(stack, recipe.getOutput());
    }
 
    public boolean isValidBrewingIngredient(ItemStack stack) {
@@ -359,6 +352,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
          .getRecipeManager()
          .getAllRecipesFor(FRRecipeTypes.BREWING.get())
          .stream()
+         .map(RecipeHolder::value)
          .flatMap(recipe -> recipe.getIngredients().stream())
          .anyMatch(ingredient -> ingredient.test(stack));
    }
@@ -372,12 +366,12 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
          return true;
       }
 
-      if (stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent()) {
+      if (stack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
          return true;
       }
 
       ItemStack existing = this.inventory.getStackInSlot(CONTAINER_SLOT);
-      if (!existing.isEmpty() && ItemStack.isSameItemSameTags(existing, stack)) {
+      if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(existing, stack)) {
          return true;
       }
 
@@ -385,6 +379,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
          .getRecipeManager()
          .getAllRecipesFor(FRRecipeTypes.KETTLE_POURING.get())
          .stream()
+         .map(RecipeHolder::value)
          .anyMatch(recipe -> matchesPouringContainer(stack, recipe) || matchesPouringOutput(stack, recipe));
    }
 
@@ -396,7 +391,8 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
       FluidStack fluid = this.fluidTank.getFluid();
       int maxCount = 0;
 
-      for (KettleRecipe recipe : this.level.getRecipeManager().getAllRecipesFor(FRRecipeTypes.BREWING.get())) {
+      for (RecipeHolder<KettleRecipe> holder : this.level.getRecipeManager().getAllRecipesFor(FRRecipeTypes.BREWING.get())) {
+         KettleRecipe recipe = holder.value();
          if (!fluid.isEmpty() && !recipe.getFluidIn().getFluid().isSame(fluid.getFluid())) {
             continue;
          }
@@ -453,34 +449,28 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
       this.level.playSound(null, this.worldPosition, (SoundEvent)FRSounds.BLOCK_KETTLE_WHISTLE.get(), SoundSource.BLOCKS, 0.25F, pitch);
    }
 
-   private Optional<KettleRecipe> getMatchingRecipe(RecipeWrapper inventoryWrapper) {
+   private Optional<RecipeHolder<KettleRecipe>> getMatchingRecipe(RecipeWrapper inventoryWrapper) {
       if (this.level == null) {
          return Optional.empty();
       }
 
       if (this.lastRecipeID != null) {
-         Recipe<RecipeWrapper> recipe = (Recipe<RecipeWrapper>)((RecipeManagerAccessor)this.level.getRecipeManager())
-            .getRecipeMap(FRRecipeTypes.BREWING.get())
-            .get(this.lastRecipeID);
-         if (recipe instanceof KettleRecipe kettleRecipe
-            && recipe.matches(inventoryWrapper, this.level)
+         Optional<RecipeHolder<?>> cached = this.level.getRecipeManager().byKey(this.lastRecipeID);
+         if (cached.isPresent() && cached.get().value() instanceof KettleRecipe kettleRecipe
+            && kettleRecipe.matches(inventoryWrapper, this.level)
             && kettleRecipe.getFluidIn().isFluidEqual(this.fluidTank.getFluid())) {
-            return Optional.of(kettleRecipe);
+            return Optional.of(new RecipeHolder<>(cached.get().id(), kettleRecipe));
          }
       }
 
-      Optional<KettleRecipe> recipe = this.level
+      Optional<RecipeHolder<KettleRecipe>> recipe = this.level
          .getRecipeManager()
          .getAllRecipesFor(FRRecipeTypes.BREWING.get())
          .stream()
-         .filter(a -> a.matches(inventoryWrapper, this.level) && a.getFluidIn().getFluid().isSame(this.fluidTank.getFluid().getFluid()))
+         .filter(holder -> holder.value().matches(inventoryWrapper, this.level)
+            && holder.value().getFluidIn().getFluid().isSame(this.fluidTank.getFluid().getFluid()))
          .findFirst();
-      if (recipe.isPresent()) {
-         this.lastRecipeID = recipe.get().getId();
-      } else {
-         this.lastRecipeID = null;
-      }
-
+      this.lastRecipeID = recipe.map(RecipeHolder::id).orElse(null);
       return recipe;
    }
 
@@ -517,7 +507,8 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
       }
    }
 
-   private boolean processBrewing(KettleRecipe recipe, KettleBlockEntity kettle) {
+   private boolean processBrewing(RecipeHolder<KettleRecipe> holder, KettleBlockEntity kettle) {
+      KettleRecipe recipe = holder.value();
       if (this.level == null) {
          return false;
       }
@@ -530,7 +521,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
 
       this.brewTime = 0;
       if (recipe.getFluidOut() != null) {
-         kettle.fluidTank.setFluid(new FluidStack(recipe.getFluidOut(), kettle.fluidTank.getFluidAmount()));
+         kettle.fluidTank.setFluid(recipe.getFluidOut().copyWithAmount(kettle.fluidTank.getFluidAmount()));
          if (kettle.level.isClientSide()) {
             kettle.level.playLocalSound(kettle.getBlockPos(), SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1.0F, 0.8F, true);
          }
@@ -538,7 +529,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
          kettle.playWhistleSound();
       }
 
-      kettle.setRecipeUsed(recipe);
+      kettle.setRecipeUsed(holder.id());
 
       for (int i = 0; i < 2; i++) {
          ItemStack slotStack = this.inventory.getStackInSlot(i);
@@ -567,33 +558,29 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
       return true;
    }
 
-   public void setRecipeUsed(@Nullable Recipe<?> recipe) {
-      if (recipe != null) {
-         ResourceLocation recipeID = recipe.getId();
-         this.usedRecipeTracker.addTo(recipeID, 1);
+   public void setRecipeUsed(@Nullable ResourceLocation recipeId) {
+      if (recipeId != null) {
+         this.usedRecipeTracker.addTo(recipeId, 1);
       }
    }
 
-   @Nullable
-   public Recipe<?> getRecipeUsed() {
-      return null;
-   }
-
    public void awardUsedRecipes(Player player, List<ItemStack> items) {
-      List<Recipe<?>> usedRecipes = this.getUsedRecipesAndPopExperience(player.level(), player.position());
+      List<RecipeHolder<?>> usedRecipes = this.getUsedRecipesAndPopExperience(player.level(), player.position());
       player.awardRecipes(usedRecipes);
       this.usedRecipeTracker.clear();
    }
 
-   public List<Recipe<?>> getUsedRecipesAndPopExperience(Level level, Vec3 pos) {
-      List<Recipe<?>> list = Lists.newArrayList();
+   public List<RecipeHolder<?>> getUsedRecipesAndPopExperience(Level level, Vec3 pos) {
+      List<RecipeHolder<?>> list = Lists.newArrayList();
       ObjectIterator var4 = this.usedRecipeTracker.object2IntEntrySet().iterator();
 
       while (var4.hasNext()) {
          Entry<ResourceLocation> entry = (Entry<ResourceLocation>)var4.next();
-         level.getRecipeManager().byKey((ResourceLocation)entry.getKey()).ifPresent(recipe -> {
-            list.add((Recipe<?>)recipe);
-            splitAndSpawnExperience((ServerLevel)level, pos, entry.getIntValue(), ((KettleRecipe)recipe).getExperience());
+         level.getRecipeManager().byKey(entry.getKey()).ifPresent(holder -> {
+            list.add(holder);
+            if (holder.value() instanceof KettleRecipe kettleRecipe) {
+               splitAndSpawnExperience((ServerLevel)level, pos, entry.getIntValue(), kettleRecipe.getExperience());
+            }
          });
       }
 
@@ -620,6 +607,10 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
 
    public FluidTank getFluidTank() {
       return this.fluidTank;
+   }
+
+   public IItemHandler getItemHandler(@Nullable Direction side) {
+      return side != null && side != Direction.UP ? this.outputHandler : this.inputHandler;
    }
 
    public FluidStack getOutput() {
@@ -671,24 +662,9 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
       return new KettleMenu(id, player, this, this.kettleData);
    }
 
-   @Nonnull
-   public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-      if (cap.equals(ForgeCapabilities.ITEM_HANDLER)) {
-         return side != null && !side.equals(Direction.UP) ? this.outputHandler.cast() : this.inputHandler.cast();
-      } else {
-         return cap.equals(ForgeCapabilities.FLUID_HANDLER) ? this.fluidTankHandler.cast() : super.getCapability(cap, side);
-      }
-   }
-
-   public void setRemoved() {
-      super.setRemoved();
-      this.inputHandler.invalidate();
-      this.outputHandler.invalidate();
-      this.fluidTankHandler.invalidate();
-   }
-
-   public CompoundTag getUpdateTag() {
-      return this.writeItems(new CompoundTag());
+   @Override
+   public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+      return this.writeItems(new CompoundTag(), registries);
    }
 
    private ItemStackHandler createHandler() {
@@ -715,7 +691,7 @@ public class KettleBlockEntity extends SyncedBlockEntity implements MenuProvider
             if (slot < 2 && !remaining.isEmpty() && KettleBlockEntity.this.needsBothIngredientSlots(stack)) {
                int otherSlot = slot == 0 ? 1 : 0;
                ItemStack otherStack = this.getStackInSlot(otherSlot);
-               if ((otherStack.isEmpty() || ItemStack.isSameItemSameTags(otherStack, stack)) && this.isItemValid(otherSlot, stack)) {
+               if ((otherStack.isEmpty() || ItemStack.isSameItemSameComponents(otherStack, stack)) && this.isItemValid(otherSlot, stack)) {
                   remaining = super.insertItem(otherSlot, remaining, simulate);
                }
             }

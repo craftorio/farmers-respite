@@ -1,7 +1,7 @@
 package umpaz.farmersrespite.common.core.dispenser;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockSource;
+import net.minecraft.core.dispenser.BlockSource;
 import net.minecraft.core.Direction;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
@@ -11,19 +11,20 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import umpaz.farmersrespite.common.block.entity.KettleBlockEntity;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 
@@ -34,11 +35,11 @@ public class FRDispenseItemBehaviour {
          private final DispenseItemBehavior defaultPotionBehaviour = (DispenseItemBehavior)DispenserBlock.DISPENSER_REGISTRY.get(Items.POTION);
 
          public ItemStack execute(BlockSource source, ItemStack stack) {
-            ServerLevel level = source.getLevel();
-            BlockPos pos = source.getPos();
-            BlockPos facingPos = source.getPos().relative((Direction)source.getBlockState().getValue(DispenserBlock.FACING));
+            ServerLevel level = source.level();
+            BlockPos pos = source.pos();
+            BlockPos facingPos = source.pos().relative((Direction)source.state().getValue(DispenserBlock.FACING));
             BlockState facingState = level.getBlockState(facingPos);
-            if (facingState.is((Block)FRBlocks.KETTLE.get()) && PotionUtils.getPotion(stack) == Potions.WATER) {
+            if (facingState.is((Block)FRBlocks.KETTLE.get()) && stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).is(Potions.WATER)) {
                BlockEntity blockEntity = level.getBlockEntity(facingPos);
                if (blockEntity instanceof KettleBlockEntity kettle) {
                   var tank = kettle.getFluidTank();
@@ -49,7 +50,7 @@ public class FRDispenseItemBehaviour {
                      kettle.setChanged();
                      this.playSound(source);
                      level.playSound((Player)null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-                     this.playAnimation(source, (Direction)source.getBlockState().getValue(DispenserBlock.FACING));
+                     this.playAnimation(source, (Direction)source.state().getValue(DispenserBlock.FACING));
                      return new ItemStack(Items.GLASS_BOTTLE);
                   }
                }
@@ -67,9 +68,9 @@ public class FRDispenseItemBehaviour {
          private final DispenseItemBehavior defaultBucketBehaviour = (DispenseItemBehavior)DispenserBlock.DISPENSER_REGISTRY.get(Items.WATER_BUCKET);
 
          public ItemStack execute(BlockSource source, ItemStack stack) {
-            ServerLevel level = source.getLevel();
-            BlockPos pos = source.getPos();
-            BlockPos facingPos = source.getPos().relative((Direction)source.getBlockState().getValue(DispenserBlock.FACING));
+            ServerLevel level = source.level();
+            BlockPos pos = source.pos();
+            BlockPos facingPos = source.pos().relative((Direction)source.state().getValue(DispenserBlock.FACING));
             BlockState facingState = level.getBlockState(facingPos);
             if (!facingState.is((Block)FRBlocks.KETTLE.get())) {
                this.setSuccess(true);
@@ -78,7 +79,7 @@ public class FRDispenseItemBehaviour {
                this.setSuccess(true);
                this.playSound(source);
                level.playSound((Player)null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
-               this.playAnimation(source, (Direction)source.getBlockState().getValue(DispenserBlock.FACING));
+               this.playAnimation(source, (Direction)source.state().getValue(DispenserBlock.FACING));
                return new ItemStack(Items.BUCKET);
             }
          }

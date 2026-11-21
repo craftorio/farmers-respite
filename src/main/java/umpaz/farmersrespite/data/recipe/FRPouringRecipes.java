@@ -4,7 +4,8 @@ import java.util.function.Consumer;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.material.Fluid;
@@ -24,7 +25,7 @@ public class FRPouringRecipes {
          Items.GLASS_BOTTLE,
          Fluids.WATER,
          250,
-         PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER),
+         PotionContents.createItemStack(Items.POTION, Potions.WATER),
          consumer
       );
       KettlePouringRecipeBuilder.kettlePouringRecipe(Items.GLASS_BOTTLE, (Fluid)FRFluids.GREEN_TEA.get(), 250, (ItemLike)FRItems.GREEN_TEA.get(), consumer);

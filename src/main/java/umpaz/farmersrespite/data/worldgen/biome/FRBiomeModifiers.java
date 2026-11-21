@@ -5,28 +5,28 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.worldgen.BootstapContext;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
-import net.minecraftforge.common.Tags.Biomes;
-import net.minecraftforge.common.world.BiomeModifier;
-import net.minecraftforge.common.world.ForgeBiomeModifiers.AddFeaturesBiomeModifier;
-import net.minecraftforge.registries.ForgeRegistries.Keys;
+import net.neoforged.neoforge.common.Tags.Biomes;
+import net.neoforged.neoforge.common.world.BiomeModifier;
+import net.neoforged.neoforge.common.world.BiomeModifiers.AddFeaturesBiomeModifier;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import umpaz.farmersrespite.data.worldgen.placement.FRPlacements;
 import vectorwing.farmersdelight.common.world.modifier.AddFeaturesByFilterBiomeModifier;
 
 public class FRBiomeModifiers {
    private static final ResourceKey<BiomeModifier> ADD_WILD_TEA_BUSH_FEATURE = ResourceKey.create(
-      Keys.BIOME_MODIFIERS, new ResourceLocation("farmersrespite", "wild_tea_bush")
+      NeoForgeRegistries.Keys.BIOME_MODIFIERS, ResourceLocation.fromNamespaceAndPath("farmersrespite", "wild_tea_bush")
    );
    private static final ResourceKey<BiomeModifier> ADD_COFFEE_BUSH_FEATURE = ResourceKey.create(
-      Keys.BIOME_MODIFIERS, new ResourceLocation("farmersrespite", "patch_coffee_bush")
+      NeoForgeRegistries.Keys.BIOME_MODIFIERS, ResourceLocation.fromNamespaceAndPath("farmersrespite", "patch_coffee_bush")
    );
 
-   public static void bootstrap(BootstapContext<BiomeModifier> context) {
+   public static void bootstrap(BootstrapContext<BiomeModifier> context) {
       HolderGetter<PlacedFeature> placedFeatureLookup = context.lookup(Registries.PLACED_FEATURE);
       Holder<PlacedFeature> patchWildTeaBushPlacedFeature = placedFeatureLookup.getOrThrow(FRPlacements.PATCH_WILD_TEA_BUSH);
       Holder<PlacedFeature> patchCoffeeBushPlacedFeature = placedFeatureLookup.getOrThrow(FRPlacements.PATCH_COFFEE_BUSH);
