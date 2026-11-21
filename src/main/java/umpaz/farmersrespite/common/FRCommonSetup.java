@@ -11,7 +11,6 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import umpaz.farmersrespite.common.block.entity.KettleBlockEntity;
-import umpaz.farmersrespite.common.registry.FRAdvancments;
 import umpaz.farmersrespite.common.registry.FRBlockEntityTypes;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRItems;
@@ -28,7 +27,6 @@ public class FRCommonSetup {
    public static void init(FMLCommonSetupEvent event) {
       event.enqueueWork(FRCommonSetup::registerCompostables);
       event.enqueueWork(FRCommonSetup::registerFlowerPotPlants);
-      FRAdvancments.register();
    }
 
    public static void registerCompostables() {

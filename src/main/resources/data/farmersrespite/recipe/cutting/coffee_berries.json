@@ -7,7 +7,10 @@
   ],
   "result": [
     {
-      "item": "farmersrespite:coffee_beans"
+      "item": {
+        "id": "farmersrespite:coffee_beans",
+        "count": 1
+      }
     }
   ],
   "tool": {

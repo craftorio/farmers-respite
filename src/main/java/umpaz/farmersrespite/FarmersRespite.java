@@ -9,6 +9,7 @@ import net.neoforged.fml.config.ModConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import umpaz.farmersrespite.common.FRConfiguration;
+import umpaz.farmersrespite.common.registry.FRAdvancments;
 import umpaz.farmersrespite.common.registry.FRBlockEntityTypes;
 import umpaz.farmersrespite.common.registry.FRBlocks;
 import umpaz.farmersrespite.common.registry.FRCreativeTab;
@@ -43,6 +44,6 @@ public class FarmersRespite {
       FRLootFunctions.LOOT_FUNCTIONS.register(modEventBus);
       FRSounds.SOUNDS.register(modEventBus);
       FRCreativeTab.TABS.register(modEventBus);
-      NeoForge.EVENT_BUS.register(this);
+      FRAdvancments.TRIGGERS.register(modEventBus);
    }
 }

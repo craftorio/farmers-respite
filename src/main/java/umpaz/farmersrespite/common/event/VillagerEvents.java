@@ -5,9 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.BasicItemListing;
-import net.neoforged.fml.common.EventBusSubscriber;
 
-@EventBusSubscriber(modid = "farmersrespite")
 @ParametersAreNonnullByDefault
 public class VillagerEvents {
    public static BasicItemListing emeraldForItemsTrade(ItemLike item, int count, int maxTrades, int xp) {

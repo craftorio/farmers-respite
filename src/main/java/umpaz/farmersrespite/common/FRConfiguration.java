@@ -3,9 +3,7 @@ package umpaz.farmersrespite.common;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 import net.neoforged.neoforge.common.ModConfigSpec.Builder;
-import net.neoforged.fml.common.EventBusSubscriber;
 
-@EventBusSubscriber
 public class FRConfiguration {
    public static ModConfigSpec COMMON_CONFIG;
    public static final String CATEGORY_SETTINGS = "settings";
