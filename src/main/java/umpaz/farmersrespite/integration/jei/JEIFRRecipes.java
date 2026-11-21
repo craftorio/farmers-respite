@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeType;
 import umpaz.farmersrespite.common.crafting.KettlePouringRecipe;
 import umpaz.farmersrespite.common.crafting.KettleRecipe;
 import umpaz.farmersrespite.common.registry.FRRecipeTypes;
@@ -24,13 +24,15 @@ public class JEIFRRecipes {
    }
 
    public List<KettleUnionRecipe> getKettleRecipes() {
-      List<KettleRecipe> kettle = this.recipeManager.getAllRecipesFor(FRRecipeTypes.BREWING.get());
-      List<KettlePouringRecipe> pours = this.recipeManager.getAllRecipesFor(FRRecipeTypes.KETTLE_POURING.get());
+      List<RecipeHolder<KettleRecipe>> kettle = this.recipeManager.getAllRecipesFor(FRRecipeTypes.BREWING.get());
+      List<RecipeHolder<KettlePouringRecipe>> pours = this.recipeManager.getAllRecipesFor(FRRecipeTypes.KETTLE_POURING.get());
       List<KettleUnionRecipe> kegRecipes = new ArrayList<>();
 
-      for (KettleRecipe kettleRecipe : kettle) {
+      for (RecipeHolder<KettleRecipe> kettleHolder : kettle) {
+         KettleRecipe kettleRecipe = kettleHolder.value();
          if (kettleRecipe.getFluidOut() != null) {
-            for (KettlePouringRecipe pouringRecipe : pours) {
+            for (RecipeHolder<KettlePouringRecipe> pouringHolder : pours) {
+               KettlePouringRecipe pouringRecipe = pouringHolder.value();
                if (pouringRecipe.getFluid().isSame(kettleRecipe.getFluidOut().getFluid())) {
                   kegRecipes.add(new KettleUnionRecipe(kettleRecipe, pouringRecipe));
                }

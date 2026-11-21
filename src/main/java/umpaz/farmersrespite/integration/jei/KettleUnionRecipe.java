@@ -12,7 +12,6 @@ public class KettleUnionRecipe extends KettleRecipe {
 
    KettleUnionRecipe(KettleRecipe kettleRecipe, @Nullable KettlePouringRecipe pouringRecipe) {
       super(
-         kettleRecipe.getId(),
          kettleRecipe.getIngredients(),
          kettleRecipe.getFluidIn(),
          kettleRecipe.getFluidOut(),

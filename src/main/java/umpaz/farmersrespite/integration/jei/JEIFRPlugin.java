@@ -4,7 +4,7 @@ import java.util.Optional;
 import javax.annotation.ParametersAreNonnullByDefault;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import mezz.jei.api.forge.ForgeTypes;
+import mezz.jei.api.neoforge.NeoForgeTypes;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.recipe.RecipeType;
@@ -62,7 +62,7 @@ public class JEIFRPlugin implements IModPlugin {
                         public ITypedIngredient<FluidStack> getTypedIngredient() {
                            Optional<ITypedIngredient<FluidStack>> aef = registration.getJeiHelpers()
                               .getIngredientManager()
-                              .createTypedIngredient(ForgeTypes.FLUID_STACK, ((KettleMenu)containerScreen.getMenu()).tileEntity.getFluidTank().getFluid());
+                              .createTypedIngredient(NeoForgeTypes.FLUID_STACK, ((KettleMenu)containerScreen.getMenu()).tileEntity.getFluidTank().getFluid());
                            return aef.orElse(null);
                         }
 
